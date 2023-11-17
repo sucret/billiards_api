@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
 	"time"
 
 	"gorm.io/gorm"

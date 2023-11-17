@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"gin-api/pkg/mysql/model"
+	"billiards/pkg/mysql/model"
 )
 
 func newRoleNode(db *gorm.DB) roleNode {

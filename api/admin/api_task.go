@@ -1,10 +1,10 @@
 package api
 
 import (
+	"billiards/request"
+	"billiards/response"
+	"billiards/service"
 	"fmt"
-	"gin-api/request"
-	"gin-api/response"
-	"gin-api/service"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

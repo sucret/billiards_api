@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"billiards/pkg/log"
 	"bytes"
-	"gin-api/pkg/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"io/ioutil"

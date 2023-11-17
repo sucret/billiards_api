@@ -1,12 +1,11 @@
 package service
 
 import (
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
+	redis_ "billiards/pkg/redis"
+	"billiards/request"
 	"errors"
-	"fmt"
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
-	redis_ "gin-api/pkg/redis"
-	"gin-api/request"
 
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
@@ -29,9 +28,6 @@ func (r *roleService) List(page int) (roleList []model.Role) {
 }
 
 func (r *roleService) Save(param request.SaveRole) (role model.Role, err error) {
-
-	fmt.Println(param)
-
 	if param.RoleID == 1 {
 		err = errors.New("超级管理员不可编辑")
 		return

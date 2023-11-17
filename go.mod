@@ -1,4 +1,4 @@
-module gin-api
+module billiards
 
 go 1.18
 
@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/gogf/gf v1.16.9
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/rabbitmq/amqp091-go v1.5.0
 	github.com/robfig/cron/v3 v3.0.0
@@ -26,7 +27,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
-	github.com/gogf/gf v1.16.9 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

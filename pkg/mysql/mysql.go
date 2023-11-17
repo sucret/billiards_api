@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"gin-api/pkg/config"
+	"billiards/pkg/config"
 	"io"
 	"log"
 	"os"

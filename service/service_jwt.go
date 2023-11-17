@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gin-api/pkg/config"
-	"gin-api/pkg/mysql"
+	"billiards/pkg/config"
+	"billiards/pkg/mysql"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -28,8 +28,10 @@ type CustomClaims struct {
 }
 
 const (
-	TokenType    = "bearer"
-	AppGuardName = "app"
+	TokenType       = "bearer"
+	AppGuardName    = "app"
+	AppClientName   = "client"
+	AppBusinessName = "business"
 )
 
 type TokenOutPut struct {

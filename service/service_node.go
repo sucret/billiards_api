@@ -1,12 +1,12 @@
 package service
 
 import (
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
+	redis_ "billiards/pkg/redis"
+	"billiards/request"
+	"billiards/response"
 	"errors"
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
-	redis_ "gin-api/pkg/redis"
-	"gin-api/request"
-	"gin-api/response"
 
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"

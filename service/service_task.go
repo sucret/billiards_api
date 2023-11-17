@@ -1,14 +1,14 @@
 package service
 
 import (
+	"billiards/pkg/cron"
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
+	"billiards/request"
+	"billiards/response"
 	"context"
 	"errors"
 	"fmt"
-	"gin-api/pkg/cron"
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
-	"gin-api/request"
-	"gin-api/response"
 	"os/exec"
 	"sync"
 	"time"

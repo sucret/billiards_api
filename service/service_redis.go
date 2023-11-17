@@ -1,7 +1,7 @@
 package service
 
 import (
-	redis_ "gin-api/pkg/redis"
+	redis_ "billiards/pkg/redis"
 	"github.com/go-redis/redis"
 )
 

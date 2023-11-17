@@ -1,8 +1,8 @@
 package log
 
 import (
-	"gin-api/pkg/config"
-	"gin-api/pkg/tool"
+	"billiards/pkg/config"
+	"billiards/pkg/tool"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
-	"gin-api/pkg/tool"
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
+	"billiards/pkg/tool"
 
 	"github.com/spf13/cobra"
 	"gorm.io/gen"
@@ -125,6 +125,16 @@ func generateTable() {
 
 		// 角色和权限表关系 many2many
 		gen.FieldRelate(field.Many2Many, "NodeList", node, &field.RelateConfig{GORMTag: "many2many:role_node;foreignKey:RoleID;joinForeignKey:RoleID;joinReferences:NodeID"}),
+	}...)
+
+	terminal := g.GenerateModel("terminal")
+
+	table := g.GenerateModel("table", []gen.ModelOpt{
+		gen.FieldRelate(field.HasMany, "TerminalList", terminal, &field.RelateConfig{GORMTag: "hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
+	}...)
+
+	g.GenerateModel("shop", []gen.ModelOpt{
+		gen.FieldRelate(field.HasMany, "TableList", table, &field.RelateConfig{GORMTag: "hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)

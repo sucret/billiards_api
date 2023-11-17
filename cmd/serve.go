@@ -5,10 +5,10 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"gin-api/pkg/log"
-	"gin-api/pkg/validator"
-	"gin-api/router"
-	"gin-api/service"
+	"billiards/pkg/log"
+	"billiards/pkg/validator"
+	"billiards/router"
+	"billiards/service"
 	"github.com/spf13/cobra"
 )
 

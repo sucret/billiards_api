@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"gin-api/pkg/config"
+	"billiards/pkg/config"
 	"sync"
 
 	"github.com/go-redis/redis"

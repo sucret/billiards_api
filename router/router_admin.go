@@ -1,25 +1,31 @@
 package router
 
 import (
-	api "gin-api/api/admin"
-	"gin-api/middleware"
-	"gin-api/service"
+	api "billiards/api/admin"
+	"billiards/middleware"
+	"billiards/service"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func setAdminRouter(r *gin.Engine, db *gorm.DB) {
-	r.Use(middleware.Cors(), middleware.GinLogger())
+func setAdminRouter(r *gin.Engine) {
 
 	// 登陆接口不需要走jwt验证
 	r.POST("/admin/login", api.AdminApi.Login)
 	r.POST("/admin/get-login-sms", api.AdminApi.AdminSendLoginSms)
 
 	// 菜单接口不走权限验证
-	r.GET("/admin/admin/menu", api.AdminApi.MenuList).Use(middleware.JWTAuth(service.AppGuardName), gin.Logger(), middleware.CustomRecovery())
+	r.GET("/admin/admin/menu",
+		middleware.JWTAuth(service.AppGuardName),
+		gin.Logger(),
+		middleware.CustomRecovery(),
+		api.AdminApi.MenuList)
 
-	adminRouters := r.Group("/admin").Use(middleware.JWTAuth(service.AppGuardName), middleware.CheckAdminPermission(), gin.Logger(), middleware.CustomRecovery())
+	adminRouters := r.Group("/admin").Use(
+		middleware.JWTAuth(service.AppGuardName),
+		middleware.CheckAdminPermission(),
+		gin.Logger(),
+		middleware.CustomRecovery())
 	{
 		adminRouters.GET("/profile", api.AdminApi.Profile)
 		adminRouters.GET("/admin/list", api.AdminApi.List)
@@ -55,5 +61,18 @@ func setAdminRouter(r *gin.Engine, db *gorm.DB) {
 
 		// Redis缓存操作
 		adminRouters.POST("/cache/redis-query", api.RedisApi.Query)
+
+		// 店铺
+		adminRouters.GET("/shop/list", api.ShopApi.List)
+		adminRouters.POST("/shop/save", api.ShopApi.Save)
+		adminRouters.GET("/shop/detail", api.ShopApi.Detail)
+
+		// 终端
+		adminRouters.POST("/terminal/change-status", api.TerminalApi.ChangeStatus)
+		adminRouters.POST("/terminal/save", api.TerminalApi.Save)
+		adminRouters.GET("/terminal/delete", api.TerminalApi.Delete)
+
+		adminRouters.GET("/table/activate", api.TableApi.Activate)
+		adminRouters.POST("table/save", api.TableApi.Save)
 	}
 }

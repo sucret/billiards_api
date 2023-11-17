@@ -1,9 +1,9 @@
 package router
 
 import (
+	"billiards/middleware"
 	"context"
 	"fmt"
-	"gin-api/pkg/mysql"
 	"log"
 	"net/http"
 	"os"
@@ -15,11 +15,19 @@ import (
 )
 
 func NewHttpServer() {
-	db := mysql.GetDB()
+	//db := mysql.GetDB()
 
 	r := gin.New()
 
-	setAdminRouter(r, db)
+	r.Use(middleware.Cors(), middleware.GinLogger())
+
+	// 初始化后台router
+	setAdminRouter(r)
+
+	// 初始化客户端router
+	setClientRoute(r)
+
+	// 初始化商家端router
 
 	// pprof.Register(r)
 	// r.Run(":8082")

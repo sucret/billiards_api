@@ -18,8 +18,12 @@ var (
 	Node      *node
 	Role      *role
 	RoleNode  *roleNode
+	Shop      *shop
+	Table     *table
 	Task      *task
 	TaskLog   *taskLog
+	Terminal  *terminal
+	User      *user
 )
 
 func SetDefault(db *gorm.DB) {
@@ -29,8 +33,12 @@ func SetDefault(db *gorm.DB) {
 	Node = &Q.Node
 	Role = &Q.Role
 	RoleNode = &Q.RoleNode
+	Shop = &Q.Shop
+	Table = &Q.Table
 	Task = &Q.Task
 	TaskLog = &Q.TaskLog
+	Terminal = &Q.Terminal
+	User = &Q.User
 }
 
 func Use(db *gorm.DB) *Query {
@@ -41,8 +49,12 @@ func Use(db *gorm.DB) *Query {
 		Node:      newNode(db),
 		Role:      newRole(db),
 		RoleNode:  newRoleNode(db),
+		Shop:      newShop(db),
+		Table:     newTable(db),
 		Task:      newTask(db),
 		TaskLog:   newTaskLog(db),
+		Terminal:  newTerminal(db),
+		User:      newUser(db),
 	}
 }
 
@@ -54,8 +66,12 @@ type Query struct {
 	Node      node
 	Role      role
 	RoleNode  roleNode
+	Shop      shop
+	Table     table
 	Task      task
 	TaskLog   taskLog
+	Terminal  terminal
+	User      user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -68,8 +84,12 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Node:      q.Node.clone(db),
 		Role:      q.Role.clone(db),
 		RoleNode:  q.RoleNode.clone(db),
+		Shop:      q.Shop.clone(db),
+		Table:     q.Table.clone(db),
 		Task:      q.Task.clone(db),
 		TaskLog:   q.TaskLog.clone(db),
+		Terminal:  q.Terminal.clone(db),
+		User:      q.User.clone(db),
 	}
 }
 
@@ -79,8 +99,12 @@ type queryCtx struct {
 	Node      INodeDo
 	Role      IRoleDo
 	RoleNode  IRoleNodeDo
+	Shop      IShopDo
+	Table     ITableDo
 	Task      ITaskDo
 	TaskLog   ITaskLogDo
+	Terminal  ITerminalDo
+	User      IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -90,8 +114,12 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Node:      q.Node.WithContext(ctx),
 		Role:      q.Role.WithContext(ctx),
 		RoleNode:  q.RoleNode.WithContext(ctx),
+		Shop:      q.Shop.WithContext(ctx),
+		Table:     q.Table.WithContext(ctx),
 		Task:      q.Task.WithContext(ctx),
 		TaskLog:   q.TaskLog.WithContext(ctx),
+		Terminal:  q.Terminal.WithContext(ctx),
+		User:      q.User.WithContext(ctx),
 	}
 }
 

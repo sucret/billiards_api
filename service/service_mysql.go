@@ -1,10 +1,10 @@
 package service
 
 import (
+	"billiards/pkg/config"
+	"billiards/pkg/mysql"
 	"errors"
 	"fmt"
-	"gin-api/pkg/config"
-	"gin-api/pkg/mysql"
 	"github.com/go-redis/redis"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"

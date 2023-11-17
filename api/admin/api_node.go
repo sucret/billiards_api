@@ -1,9 +1,9 @@
 package api
 
 import (
-	"gin-api/request"
-	"gin-api/response"
-	"gin-api/service"
+	"billiards/request"
+	"billiards/response"
+	"billiards/service"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )

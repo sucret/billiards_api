@@ -1,6 +1,6 @@
 package response
 
-import "gin-api/pkg/mysql/model"
+import "billiards/pkg/mysql/model"
 
 type TaskLogResponse struct {
 	Total   int64           `json:"total"`

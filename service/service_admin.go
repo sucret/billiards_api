@@ -1,15 +1,15 @@
 package service
 
 import (
+	"billiards/pkg/mysql"
+	"billiards/pkg/mysql/model"
+	redis_ "billiards/pkg/redis"
+	"billiards/request"
+	"billiards/response"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"gin-api/pkg/mysql"
-	"gin-api/pkg/mysql/model"
-	redis_ "gin-api/pkg/redis"
-	"gin-api/request"
-	"gin-api/response"
 	"math/rand"
 	"time"
 
