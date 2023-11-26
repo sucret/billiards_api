@@ -28,14 +28,14 @@ func (*tableApi) Save(c *gin.Context) {
 	response.Success(c, table)
 }
 
-func (*tableApi) Activate(c *gin.Context) {
+func (*tableApi) Enable(c *gin.Context) {
 	tableId, err := strconv.Atoi(c.Query("table_id"))
 	if err != nil {
 		response.BusinessFail(c, "参数错误")
 		return
 	}
 
-	table, err := service.TableService.Activate(tableId)
+	table, err := service.TableService.Enable(int32(tableId))
 	if err != nil {
 		response.BusinessFail(c, err.Error())
 		return

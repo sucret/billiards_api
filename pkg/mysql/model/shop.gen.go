@@ -9,9 +9,11 @@ const TableNameShop = "shop"
 // Shop mapped from table <shop>
 type Shop struct {
 	ShopID    int32   `gorm:"column:shop_id;type:int(11);primaryKey;autoIncrement:true" json:"shop_id"`
-	Name      string  `gorm:"column:name;type:char(62);not null" json:"name"`       // 门店名称
-	Status    int32   `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 门店状态，1｜开启，2｜关闭
-	Address   string  `gorm:"column:address;type:varchar(256)" json:"address"`      // 店铺地址
+	Name      string  `gorm:"column:name;type:char(62);not null" json:"name"`                                        // 门店名称
+	Status    int32   `gorm:"column:status;type:tinyint(4);not null" json:"status"`                                  // 门店状态，1｜开启，2｜关闭
+	Address   string  `gorm:"column:address;type:varchar(256)" json:"address"`                                       // 店铺地址
+	Longitude float64 `gorm:"column:longitude;type:decimal(15,12);not null;default:0.000000000000" json:"longitude"` // 经度
+	Latitude  float64 `gorm:"column:latitude;type:decimal(15,12);not null;default:0.000000000000" json:"latitude"`   // 纬度
 	CreatedAt Time    `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	TableList []Table `gorm:"hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID" json:"table_list"`
 }

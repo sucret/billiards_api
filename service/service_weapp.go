@@ -3,6 +3,7 @@ package service
 import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/wechat"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -24,4 +25,13 @@ func (w *weApp) Login(code string) (resp wechat.Code2SessionResp, err error) {
 	}
 
 	return
+}
+
+func (w *weApp) GetAccessToken() {
+	token, err := wechat.GetApp("client").GetAccessToken()
+	if err != nil {
+		return
+	}
+
+	fmt.Println(token)
 }

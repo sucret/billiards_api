@@ -16,6 +16,8 @@ var (
 	Admin     *admin
 	AdminRole *adminRole
 	Node      *node
+	Order     *order
+	OrderLog  *orderLog
 	Role      *role
 	RoleNode  *roleNode
 	Shop      *shop
@@ -31,6 +33,8 @@ func SetDefault(db *gorm.DB) {
 	Admin = &Q.Admin
 	AdminRole = &Q.AdminRole
 	Node = &Q.Node
+	Order = &Q.Order
+	OrderLog = &Q.OrderLog
 	Role = &Q.Role
 	RoleNode = &Q.RoleNode
 	Shop = &Q.Shop
@@ -47,6 +51,8 @@ func Use(db *gorm.DB) *Query {
 		Admin:     newAdmin(db),
 		AdminRole: newAdminRole(db),
 		Node:      newNode(db),
+		Order:     newOrder(db),
+		OrderLog:  newOrderLog(db),
 		Role:      newRole(db),
 		RoleNode:  newRoleNode(db),
 		Shop:      newShop(db),
@@ -64,6 +70,8 @@ type Query struct {
 	Admin     admin
 	AdminRole adminRole
 	Node      node
+	Order     order
+	OrderLog  orderLog
 	Role      role
 	RoleNode  roleNode
 	Shop      shop
@@ -82,6 +90,8 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Admin:     q.Admin.clone(db),
 		AdminRole: q.AdminRole.clone(db),
 		Node:      q.Node.clone(db),
+		Order:     q.Order.clone(db),
+		OrderLog:  q.OrderLog.clone(db),
 		Role:      q.Role.clone(db),
 		RoleNode:  q.RoleNode.clone(db),
 		Shop:      q.Shop.clone(db),
@@ -97,6 +107,8 @@ type queryCtx struct {
 	Admin     IAdminDo
 	AdminRole IAdminRoleDo
 	Node      INodeDo
+	Order     IOrderDo
+	OrderLog  IOrderLogDo
 	Role      IRoleDo
 	RoleNode  IRoleNodeDo
 	Shop      IShopDo
@@ -112,6 +124,8 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Admin:     q.Admin.WithContext(ctx),
 		AdminRole: q.AdminRole.WithContext(ctx),
 		Node:      q.Node.WithContext(ctx),
+		Order:     q.Order.WithContext(ctx),
+		OrderLog:  q.OrderLog.WithContext(ctx),
 		Role:      q.Role.WithContext(ctx),
 		RoleNode:  q.RoleNode.WithContext(ctx),
 		Shop:      q.Shop.WithContext(ctx),

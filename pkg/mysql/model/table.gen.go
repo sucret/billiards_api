@@ -9,12 +9,14 @@ const TableNameTable = "table"
 // Table mapped from table <table>
 type Table struct {
 	TableID      int32      `gorm:"column:table_id;type:int(11);primaryKey;autoIncrement:true" json:"table_id"`
-	Name         string     `gorm:"column:name;type:char(32);not null" json:"name"`       // 球桌名称
-	ShopID       int32      `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`  // 店铺id
-	Status       int32      `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 状态，1｜开启，2｜关闭
-	Qrcode       string     `gorm:"column:qrcode;type:char(128);not null" json:"qrcode"`  // 开台二维码
+	Name         string     `gorm:"column:name;type:char(32);not null" json:"name"`        // 球桌名称
+	ShopID       int32      `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`   // 店铺id
+	Status       int32      `gorm:"column:status;type:tinyint(4);not null" json:"status"`  // 状态，1｜开启，2｜关闭
+	Qrcode       string     `gorm:"column:qrcode;type:char(128);not null" json:"qrcode"`   // 开台二维码
+	ActivatedAt  Time       `gorm:"column:activated_at;type:datetime" json:"activated_at"` // 开台时间，结束之后清零
 	CreatedAt    Time       `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	TerminalList []Terminal `gorm:"hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"terminal_list"`
+	Shop         Shop       `gorm:"belongsto:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID" json:"shop"`
 }
 
 // TableName Table's table name

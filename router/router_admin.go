@@ -72,7 +72,7 @@ func setAdminRouter(r *gin.Engine) {
 		adminRouters.POST("/terminal/save", api.TerminalApi.Save)
 		adminRouters.GET("/terminal/delete", api.TerminalApi.Delete)
 
-		adminRouters.GET("/table/activate", api.TableApi.Activate)
+		adminRouters.GET("/table/enable", api.TableApi.Enable)
 		adminRouters.POST("table/save", api.TableApi.Save)
 	}
 }

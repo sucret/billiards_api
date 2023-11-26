@@ -27,6 +27,9 @@ func NewHttpServer() {
 	// 初始化客户端router
 	setClientRoute(r)
 
+	// 设置外部调用router
+	setExternalRoute(r)
+
 	// 初始化商家端router
 
 	// pprof.Register(r)

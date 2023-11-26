@@ -32,6 +32,7 @@ func newTable(db *gorm.DB) table {
 	_table.ShopID = field.NewInt32(tableName, "shop_id")
 	_table.Status = field.NewInt32(tableName, "status")
 	_table.Qrcode = field.NewString(tableName, "qrcode")
+	_table.ActivatedAt = field.NewField(tableName, "activated_at")
 	_table.CreatedAt = field.NewField(tableName, "created_at")
 
 	_table.fillFieldMap()
@@ -42,13 +43,14 @@ func newTable(db *gorm.DB) table {
 type table struct {
 	tableDo tableDo
 
-	ALL       field.Asterisk
-	TableID   field.Int32
-	Name      field.String // 球桌名称
-	ShopID    field.Int32  // 店铺id
-	Status    field.Int32  // 状态，1｜开启，2｜关闭
-	Qrcode    field.String // 开台二维码
-	CreatedAt field.Field
+	ALL         field.Asterisk
+	TableID     field.Int32
+	Name        field.String // 球桌名称
+	ShopID      field.Int32  // 店铺id
+	Status      field.Int32  // 状态，1｜开启，2｜关闭
+	Qrcode      field.String // 开台二维码
+	ActivatedAt field.Field  // 开台时间，结束之后清零
+	CreatedAt   field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -70,6 +72,7 @@ func (t *table) updateTableName(table string) *table {
 	t.ShopID = field.NewInt32(table, "shop_id")
 	t.Status = field.NewInt32(table, "status")
 	t.Qrcode = field.NewString(table, "qrcode")
+	t.ActivatedAt = field.NewField(table, "activated_at")
 	t.CreatedAt = field.NewField(table, "created_at")
 
 	t.fillFieldMap()
@@ -93,12 +96,13 @@ func (t *table) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *table) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 6)
+	t.fieldMap = make(map[string]field.Expr, 7)
 	t.fieldMap["table_id"] = t.TableID
 	t.fieldMap["name"] = t.Name
 	t.fieldMap["shop_id"] = t.ShopID
 	t.fieldMap["status"] = t.Status
 	t.fieldMap["qrcode"] = t.Qrcode
+	t.fieldMap["activated_at"] = t.ActivatedAt
 	t.fieldMap["created_at"] = t.CreatedAt
 }
 

@@ -128,13 +128,21 @@ func generateTable() {
 	}...)
 
 	terminal := g.GenerateModel("terminal")
+	//shop := g.GenerateModel("shop")
+	table := g.GenerateModel("table")
 
-	table := g.GenerateModel("table", []gen.ModelOpt{
-		gen.FieldRelate(field.HasMany, "TerminalList", terminal, &field.RelateConfig{GORMTag: "hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
+	shop := g.GenerateModel("shop", []gen.ModelOpt{
+		gen.FieldRelate(field.HasMany, "TableList", table, &field.RelateConfig{GORMTag: "hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
 	}...)
 
-	g.GenerateModel("shop", []gen.ModelOpt{
-		gen.FieldRelate(field.HasMany, "TableList", table, &field.RelateConfig{GORMTag: "hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
+	g.GenerateModel("table", []gen.ModelOpt{
+		gen.FieldRelate(field.HasMany, "TerminalList", terminal, &field.RelateConfig{GORMTag: "hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
+
+		gen.FieldRelate(field.BelongsTo, "Shop", shop, &field.RelateConfig{GORMTag: "belongsto:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
+	}...)
+
+	g.GenerateModel("order", []gen.ModelOpt{
+		gen.FieldRelate(field.BelongsTo, "Table", table, &field.RelateConfig{GORMTag: "belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)
