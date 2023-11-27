@@ -2,4 +2,4 @@
 config.yaml
 /.idea
 /billiards
-/cert/*
+/cert/ap*
