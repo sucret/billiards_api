@@ -1,7 +1,8 @@
 package api
 
 import (
-	"billiards/pkg/wechat"
+	"billiards/response"
+	"billiards/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,26 +12,11 @@ var WechatApi = new(wechatApi)
 
 // 支付回调
 func (*wechatApi) PayNotify(c *gin.Context) {
+	err := service.PaymentService.PayNotify(c)
+	if err != nil {
+		response.BusinessFail(c, err.Error())
+		return
+	}
 
-	//tool.Dump(c.Request)
-	//request := notify.Request{}
-	//err := c.ShouldBindJSON(&request)
-	//if err != nil {
-	//	//fmt.Println(err)
-	//	return
-	//}
-
-	//tool.Dump(request)
-
-	//tool.Dump(request)
-	//tool.Dump(c.Request)
-	wechat.NewPayment().GetPayResult(c.Request)
-	//
-	//orderNum := c.Query("order_num")
-	//order, err := service.OrderService.PaySuccess(orderNum)
-	//if err != nil {
-	//	return
-	//}
-	//
-	//tool.Dump(order)
+	response.Success(c, nil)
 }

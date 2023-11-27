@@ -7,6 +7,7 @@ import (
 	"billiards/pkg/tool"
 	"billiards/request"
 	"errors"
+	"fmt"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 	"sync"
@@ -120,22 +121,22 @@ func (t *tableService) Enable(tableId int32) (table model.Table, err error) {
 		return
 	}
 
-	tool.Dump(table)
-
 	// 调用终端服务去开启，成
 	//功之后修改表
 	for _, val := range table.TerminalList {
-		tool.Dump(val.Type)
 		if val.Type == model.TerminalTypePicReader {
 			continue
 		}
 
 		form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusOpen}
-		_, err = TerminalService.ChangeStatus(form)
-		if err != nil {
-			tx.Rollback()
-			return
-		}
+		fmt.Println(form)
+
+		// todo 开台这里先隐藏
+		//_, err = TerminalService.ChangeStatus(form)
+		//if err != nil {
+		//	tx.Rollback()
+		//	return
+		//}
 	}
 
 	table.Status = model.TableStatusOpen

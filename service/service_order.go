@@ -5,8 +5,6 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
-	"billiards/pkg/tool"
-	"billiards/pkg/wechat"
 	"billiards/response"
 	"errors"
 	"fmt"
@@ -205,11 +203,10 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	}
 
 	// 生成预支付的参数
-	res, err := wechat.NewPayment().GetPrepayBill(user.OpenID, "fwe", order.OrderNum, int64(table.Price*100))
-	resp.Order = &order
-	resp.JsApi = res
+	payment, err := PaymentService.MakePrepayOrder(order, user.OpenID, table.Name, order.OrderNum, table.Price)
 
-	tool.Dump(resp)
+	resp.Order = &order
+	resp.JsApi = payment
 
 	tx.Commit()
 
@@ -230,8 +227,6 @@ func (o *orderService) PaySuccess(orderNum string) (order model.Order, err error
 		tx.Rollback()
 		return
 	}
-
-	tool.Dump(order)
 
 	order.Status = model.OrderStatusPaySuccess
 	order.PaidAt = model.Time(time.Now())

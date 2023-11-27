@@ -31,10 +31,13 @@ func newPaymentOrder(db *gorm.DB) paymentOrder {
 	_paymentOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_paymentOrder.OrderNum = field.NewString(tableName, "order_num")
 	_paymentOrder.Amount = field.NewFloat64(tableName, "amount")
-	_paymentOrder.CreatedAt = field.NewField(tableName, "created_at")
-	_paymentOrder.UpdatedAt = field.NewField(tableName, "updated_at")
 	_paymentOrder.NotifyID = field.NewString(tableName, "notify_id")
 	_paymentOrder.Resource = field.NewString(tableName, "resource")
+	_paymentOrder.BankType = field.NewString(tableName, "bank_type")
+	_paymentOrder.TransactionID = field.NewString(tableName, "transaction_id")
+	_paymentOrder.TradeState = field.NewString(tableName, "trade_state")
+	_paymentOrder.CreatedAt = field.NewField(tableName, "created_at")
+	_paymentOrder.UpdatedAt = field.NewField(tableName, "updated_at")
 
 	_paymentOrder.fillFieldMap()
 
@@ -47,12 +50,25 @@ type paymentOrder struct {
 	ALL            field.Asterisk
 	PaymentOrderID field.Int32
 	OrderID        field.Int32
-	OrderNum       field.String
+	OrderNum       field.String // 订单号
 	Amount         field.Float64
-	CreatedAt      field.Field
-	UpdatedAt      field.Field
 	NotifyID       field.String // 微信通知id
 	Resource       field.String
+	BankType       field.String // 银行
+	TransactionID  field.String // 微信支付系统订单号
+	/*
+		交易状态，枚举值：
+		SUCCESS：支付成功
+		REFUND：转入退款
+		NOTPAY：未支付
+		CLOSED：已关闭
+		REVOKED：已撤销（付款码支付）
+		USERPAYING：用户支付中（付款码支付）
+		PAYERROR：支付失败(其他原因，如银行返回失败)
+	*/
+	TradeState field.String
+	CreatedAt  field.Field
+	UpdatedAt  field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -73,10 +89,13 @@ func (p *paymentOrder) updateTableName(table string) *paymentOrder {
 	p.OrderID = field.NewInt32(table, "order_id")
 	p.OrderNum = field.NewString(table, "order_num")
 	p.Amount = field.NewFloat64(table, "amount")
-	p.CreatedAt = field.NewField(table, "created_at")
-	p.UpdatedAt = field.NewField(table, "updated_at")
 	p.NotifyID = field.NewString(table, "notify_id")
 	p.Resource = field.NewString(table, "resource")
+	p.BankType = field.NewString(table, "bank_type")
+	p.TransactionID = field.NewString(table, "transaction_id")
+	p.TradeState = field.NewString(table, "trade_state")
+	p.CreatedAt = field.NewField(table, "created_at")
+	p.UpdatedAt = field.NewField(table, "updated_at")
 
 	p.fillFieldMap()
 
@@ -101,15 +120,18 @@ func (p *paymentOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *paymentOrder) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 8)
+	p.fieldMap = make(map[string]field.Expr, 11)
 	p.fieldMap["payment_order_id"] = p.PaymentOrderID
 	p.fieldMap["order_id"] = p.OrderID
 	p.fieldMap["order_num"] = p.OrderNum
 	p.fieldMap["amount"] = p.Amount
-	p.fieldMap["created_at"] = p.CreatedAt
-	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["notify_id"] = p.NotifyID
 	p.fieldMap["resource"] = p.Resource
+	p.fieldMap["bank_type"] = p.BankType
+	p.fieldMap["transaction_id"] = p.TransactionID
+	p.fieldMap["trade_state"] = p.TradeState
+	p.fieldMap["created_at"] = p.CreatedAt
+	p.fieldMap["updated_at"] = p.UpdatedAt
 }
 
 func (p paymentOrder) clone(db *gorm.DB) paymentOrder {
