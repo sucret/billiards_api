@@ -10,6 +10,6 @@ func setExternalRoute(r *gin.Engine) {
 	clientRouters := r.Group("/e").Use(gin.Logger(), middleware.CustomRecovery())
 	{
 		// 微信支付回调
-		clientRouters.GET("/wechat/pay-notify", api.WechatApi.PayNotify)
+		clientRouters.POST("/wechat/pay-notify", api.WechatApi.PayNotify)
 	}
 }
