@@ -20,7 +20,7 @@ func (*userApi) Login(c *gin.Context) {
 		return
 	}
 
-	if user, err := service.User.Login(code); err != nil {
+	if user, err := service.UserService.Login(code); err != nil {
 		response.BusinessFail(c, err.Error())
 	} else {
 		tool.Dump(user)

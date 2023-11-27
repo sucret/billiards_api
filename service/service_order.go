@@ -6,12 +6,15 @@ import (
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
 	"billiards/pkg/tool"
+	"billiards/pkg/wechat"
+	"billiards/response"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -39,11 +42,7 @@ var OrderService = &orderService{
 func (o *orderService) Terminate(userId, orderId int) (order model.Order, err error) {
 	tx := o.db.Begin()
 
-	//if err = tx.Set("gorm:query_option", "FOR UPDATE").First(&order, orderId).Error; err != nil {
-	//	tx.Rollback()
-	//	return
-	//}
-
+	// 获取订单信息
 	if err := tx.Set("gorm:query_option", "FOR UPDATE").
 		//Preload("Table").
 		Where("user_id = ? AND order_id = ? AND status = ?", userId, orderId, model.OrderStatusPaySuccess).
@@ -54,16 +53,15 @@ func (o *orderService) Terminate(userId, orderId int) (order model.Order, err er
 	}
 
 	// 关闭球桌
-	_, err = TableService.Disable(order.TableID)
-	if err != nil {
-		tx.Rollback()
-		return
-		//return model.Order{}, err
-	}
+	//_, err = TableService.Disable(order.TableID)
+	//if err != nil {
+	//	tx.Rollback()
+	//	return
+	//}
 
 	// 修改订单状态
-
 	order.Status = model.OrderStatusFinised
+	order.TerminatedAt = model.Time(time.Now())
 
 	if err = tx.Save(&order).Error; err != nil {
 		tx.Rollback()
@@ -71,8 +69,13 @@ func (o *orderService) Terminate(userId, orderId int) (order model.Order, err er
 		return
 	}
 
-	tx.Commit()
-	tool.Dump(order)
+	// 结算
+	o.settlement(order)
+
+	//tx.Commit()
+
+	tx.Rollback()
+	//tool.Dump(order)
 
 	return
 }
@@ -147,8 +150,7 @@ func (o *orderService) GenerateOrderNum() (orderNum string) {
 }
 
 // 创建订单
-func (o *orderService) Create(tableId, userId int32) (order model.Order, err error) {
-	o.GenerateOrderNum()
+func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam, err error) {
 	// todo 暂时先在创建订单的时候关闭过期的订单，后边需要移动到定时任务里边去
 	go o.TimingCancel()
 
@@ -156,7 +158,11 @@ func (o *orderService) Create(tableId, userId int32) (order model.Order, err err
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
+	order := model.Order{}
 	tx := o.db.Begin()
+
+	// 获取用户信息
+	user, _ := UserService.GetByUserId(userId)
 
 	// 先查询出球桌，判断一下是否可以开台
 	table := model.Table{}
@@ -197,6 +203,13 @@ func (o *orderService) Create(tableId, userId int32) (order model.Order, err err
 		tx.Rollback()
 		return
 	}
+
+	// 生成预支付的参数
+	res, err := wechat.NewPayment().GetPrepayBill(user.OpenID, "fwe", order.OrderNum, int64(table.Price*100))
+	resp.Order = &order
+	resp.JsApi = res
+
+	tool.Dump(resp)
 
 	tx.Commit()
 
@@ -247,4 +260,23 @@ func (o *orderService) PaySuccess(orderNum string) (order model.Order, err error
 
 	tx.Commit()
 	return
+}
+
+// 结算
+// 开始时间
+// 结束时间
+// 有没有优惠券
+// 优先使用优惠券
+// 剩余时间用押金结算
+// 返回应该退多少押金
+
+func (o *orderService) settlement(order model.Order) {
+	// 计算
+	duration := time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Seconds()
+
+	// 有优惠券的话，先减掉优惠券的时间
+
+	amount := order.Price / 3600 * duration
+	order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", amount), 64)
+
 }

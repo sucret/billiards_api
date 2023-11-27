@@ -37,6 +37,8 @@ func newOrder(db *gorm.DB) order {
 	_order.CreatedAt = field.NewField(tableName, "created_at")
 	_order.UpdatedAt = field.NewField(tableName, "updated_at")
 	_order.PaidAt = field.NewField(tableName, "paid_at")
+	_order.TerminatedAt = field.NewField(tableName, "terminated_at")
+	_order.Price = field.NewFloat64(tableName, "price")
 
 	_order.fillFieldMap()
 
@@ -46,17 +48,19 @@ func newOrder(db *gorm.DB) order {
 type order struct {
 	orderDo orderDo
 
-	ALL       field.Asterisk
-	OrderID   field.Int32
-	OrderNum  field.String // 订单号
-	UserID    field.Int32
-	Status    field.Int32 // 订单状态，1｜待支付，2｜支付完成，3｜已退款
-	ShopID    field.Int32
-	TableID   field.Int32
-	Amount    field.Float64 // 金额
-	CreatedAt field.Field   // 创建时间
-	UpdatedAt field.Field   // 更新时间
-	PaidAt    field.Field   // 支付时间
+	ALL          field.Asterisk
+	OrderID      field.Int32
+	OrderNum     field.String // 订单号
+	UserID       field.Int32
+	Status       field.Int32 // 订单状态，1｜待支付，2｜支付完成，3｜已退款
+	ShopID       field.Int32
+	TableID      field.Int32
+	Amount       field.Float64 // 金额
+	CreatedAt    field.Field   // 创建时间
+	UpdatedAt    field.Field   // 更新时间
+	PaidAt       field.Field   // 支付时间
+	TerminatedAt field.Field   // 终止时间
+	Price        field.Float64 // 价格
 
 	fieldMap map[string]field.Expr
 }
@@ -83,6 +87,8 @@ func (o *order) updateTableName(table string) *order {
 	o.CreatedAt = field.NewField(table, "created_at")
 	o.UpdatedAt = field.NewField(table, "updated_at")
 	o.PaidAt = field.NewField(table, "paid_at")
+	o.TerminatedAt = field.NewField(table, "terminated_at")
+	o.Price = field.NewFloat64(table, "price")
 
 	o.fillFieldMap()
 
@@ -105,7 +111,7 @@ func (o *order) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *order) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 10)
+	o.fieldMap = make(map[string]field.Expr, 12)
 	o.fieldMap["order_id"] = o.OrderID
 	o.fieldMap["order_num"] = o.OrderNum
 	o.fieldMap["user_id"] = o.UserID
@@ -116,6 +122,8 @@ func (o *order) fillFieldMap() {
 	o.fieldMap["created_at"] = o.CreatedAt
 	o.fieldMap["updated_at"] = o.UpdatedAt
 	o.fieldMap["paid_at"] = o.PaidAt
+	o.fieldMap["terminated_at"] = o.TerminatedAt
+	o.fieldMap["price"] = o.Price
 }
 
 func (o order) clone(db *gorm.DB) order {

@@ -10,7 +10,7 @@ type user struct {
 	db *gorm.DB
 }
 
-var User = &user{
+var UserService = &user{
 	db: mysql.GetDB(),
 }
 
@@ -26,5 +26,10 @@ func (u *user) Login(code string) (user *model.User, err error) {
 		u.db.Create(user)
 	}
 
+	return
+}
+
+func (u *user) GetByUserId(userId int32) (user model.User, err error) {
+	err = u.db.Where("user_id = ?", userId).First(&user).Error
 	return
 }

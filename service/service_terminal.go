@@ -7,10 +7,10 @@ import (
 	"billiards/pkg/mysql/model"
 	"billiards/request"
 	"errors"
-	"fmt"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"sync"
+	"time"
 )
 
 type terminalService struct {
@@ -110,10 +110,7 @@ func (e *terminalService) Delete(terminalId int) (err error) {
 		return
 	}
 
-	time := model.Time{}
-
-	fmt.Println(time.Local())
-	terminal.DeletedAt = model.Time{}
+	terminal.DeletedAt = model.Time(time.Now())
 	err = e.db.Save(&terminal).Error
 
 	return

@@ -51,5 +51,8 @@ func (*terminalApi) Delete(c *gin.Context) {
 		return
 	}
 
-	service.TerminalService.Delete(terminalId)
+	err = service.TerminalService.Delete(terminalId)
+	if err != nil {
+		return
+	}
 }
