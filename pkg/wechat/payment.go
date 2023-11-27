@@ -29,7 +29,7 @@ func NewPayment() (p *Payment) {
 	p = &Payment{
 		appId:               "wx6fab07b9528faf96",
 		mchId:               "1660752841",
-		notifyUrl:           "http://http://billiards.wosta.cn/e/wechat/pay-notify",
+		notifyUrl:           "https://billiards.wosta.cn/e/wechat/pay-notify",
 		mchApiV3Key:         "YLcdCByxLQdCQXNzd3cQ8J8H7dD9P4CU",
 		mchCertSerialNumber: "27234D02B606B0557E6361C44D91788FE5FC454A",
 		mchCertKeyFile:      "cert/apiclient_key.pem",
