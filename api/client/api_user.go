@@ -1,7 +1,6 @@
 package api
 
 import (
-	"billiards/pkg/tool"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -23,10 +22,7 @@ func (*userApi) Login(c *gin.Context) {
 	if user, err := service.UserService.Login(code); err != nil {
 		response.BusinessFail(c, err.Error())
 	} else {
-		tool.Dump(user)
 		tokenData, _, err := service.JwtService.CreateToken(service.AppClientName, user)
-
-		tool.Dump(tokenData)
 
 		if err != nil {
 			response.BusinessFail(c, err.Error())

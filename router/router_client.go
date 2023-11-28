@@ -21,6 +21,7 @@ func setClientRoute(r *gin.Engine) {
 
 		// 球桌
 		clientRouter.GET("/table/detail", api.TableApi.Detail)
+		clientRouter.GET("/table/get-order", api.TableApi.GetOrder)
 
 		// 订单
 		clientRouter.POST("/order/create", api.OrderApi.Create)

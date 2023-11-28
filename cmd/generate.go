@@ -130,6 +130,7 @@ func generateTable() {
 	terminal := g.GenerateModel("terminal")
 	//shop := g.GenerateModel("shop")
 	table := g.GenerateModel("table")
+	paymentOrder := g.GenerateModel("payment_order")
 
 	shop := g.GenerateModel("shop", []gen.ModelOpt{
 		gen.FieldRelate(field.HasMany, "TableList", table, &field.RelateConfig{GORMTag: "hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
@@ -143,6 +144,7 @@ func generateTable() {
 
 	g.GenerateModel("order", []gen.ModelOpt{
 		gen.FieldRelate(field.BelongsTo, "Table", table, &field.RelateConfig{GORMTag: "belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
+		gen.FieldRelate(field.HasMany, "PaymentOrderList", paymentOrder, &field.RelateConfig{GORMTag: "hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)

@@ -8,12 +8,12 @@ const TableNameTask = "task"
 
 // Task mapped from table <task>
 type Task struct {
-	TaskID              int32  `gorm:"column:task_id;type:int(11) unsigned;primaryKey;autoIncrement:true" json:"task_id"`     // 主键
+	TaskID              int32  `gorm:"column:task_id;type:int(10) unsigned;primaryKey;autoIncrement:true" json:"task_id"`     // 主键
 	Name                string `gorm:"column:name;type:varchar(64);not null" json:"name"`                                     // 任务名称
 	Spec                string `gorm:"column:spec;type:varchar(64);not null" json:"spec"`                                     // crontab 表达式
 	Command             string `gorm:"column:command;type:varchar(255);not null" json:"command"`                              // 执行命令
 	ProcessNum          int32  `gorm:"column:process_num;type:int(11);not null;default:1" json:"process_num"`                 // 进程数（单机）
-	Timeout             int32  `gorm:"column:timeout;type:int(11) unsigned;not null;default:60" json:"timeout"`               // 超时时间(单位:秒)
+	Timeout             int32  `gorm:"column:timeout;type:int(10) unsigned;not null;default:60" json:"timeout"`               // 超时时间(单位:秒)
 	RetryTimes          int32  `gorm:"column:retry_times;type:tinyint(4);not null;default:3" json:"retry_times"`              // 重试次数
 	RetryInterval       int32  `gorm:"column:retry_interval;type:int(11);not null;default:60" json:"retry_interval"`          // 重试间隔(单位:秒)
 	NotifyStatus        int32  `gorm:"column:notify_status;type:tinyint(4);not null" json:"notify_status"`                    // 执行结束是否通知 1:不通知 2:失败通知 3:结束通知 4:结果关键字匹配通知

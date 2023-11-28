@@ -4,7 +4,6 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
-	"billiards/pkg/tool"
 	"billiards/request"
 	"errors"
 	"fmt"
@@ -79,17 +78,17 @@ func (t *tableService) Disable(tableId int32) (table model.Table, err error) {
 	}
 
 	for _, val := range table.TerminalList {
-		tool.Dump(val.Type)
 		if val.Type == model.TerminalTypePicReader {
 			continue
 		}
 
-		form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusClose}
-		_, err = TerminalService.ChangeStatus(form)
-		if err != nil {
-			tx.Rollback()
-			return
-		}
+		// todo
+		//form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusClose}
+		//_, err = TerminalService.ChangeStatus(form)
+		//if err != nil {
+		//	tx.Rollback()
+		//	return
+		//}
 	}
 
 	table.Status = model.TableStatusClose

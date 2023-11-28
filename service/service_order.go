@@ -5,12 +5,14 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
+	"billiards/pkg/tool"
 	"billiards/response"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"math"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -29,6 +31,15 @@ var OrderService = &orderService{
 	lock:  sync.Mutex{},
 }
 
+func (o *orderService) GetByTable(tableId, userId int) (order model.Order, err error) {
+	if err = o.db.Where("table_id = ? AND user_id = ? AND status = ?",
+		tableId, userId, model.OrderStatusPaySuccess).
+		First(&order).Error; err != nil {
+		return
+	}
+	return
+}
+
 // 终止订单
 //
 // 检查球杆是否归还
@@ -37,60 +48,101 @@ var OrderService = &orderService{
 // 结算
 // 发起微信退款
 // 修改订单状态
-func (o *orderService) Terminate(userId, orderId int) (order model.Order, err error) {
+func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDetail, err error) {
+	// todo 判断球杆柜是否关闭
+
 	tx := o.db.Begin()
 
+	order = &response.OrderDetail{}
 	// 获取订单信息
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").
-		//Preload("Table").
+	if err = tx.Set("gorm:query_option", "FOR UPDATE").
+		Preload("Table").
 		Where("user_id = ? AND order_id = ? AND status = ?", userId, orderId, model.OrderStatusPaySuccess).
 		First(&order).Error; err != nil {
 		err = errors.New("未查询到订单信息")
 		tx.Rollback()
-		return model.Order{}, err
+		return
 	}
 
 	// 关闭球桌
-	//_, err = TableService.Disable(order.TableID)
-	//if err != nil {
-	//	tx.Rollback()
-	//	return
-	//}
+	// todo
+	_, err = TableService.Disable(order.TableID)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 
 	// 修改订单状态
 	order.Status = model.OrderStatusFinised
 	order.TerminatedAt = model.Time(time.Now())
 
-	if err = tx.Save(&order).Error; err != nil {
+	// 结算 回写订单金额
+	o.settlement(&order.Order)
+
+	// todo 退押金
+
+	if err = tx.Save(&order.Order).Error; err != nil {
 		tx.Rollback()
 		err = errors.New("关闭失败")
 		return
 	}
 
-	// 结算
-	o.settlement(order)
+	tx.Commit()
 
-	//tx.Commit()
-
-	tx.Rollback()
-	//tool.Dump(order)
+	// 重新获取订单信息
+	order, err = o.Detail(userId, orderId)
 
 	return
 }
 
-func (o *orderService) Detail(userId, orderId int) (order model.Order, err error) {
+func (o *orderService) Detail(userId, orderId int) (order *response.OrderDetail, err error) {
 	if err := o.db.Preload("Table").
 		Preload("Table.Shop").
+		Preload("PaymentOrderList", func(db *gorm.DB) *gorm.DB {
+			return db.Select("order_id,order_num,amount").Where("trade_state = ?", "SUCCESS")
+		}).
 		Where("user_id = ? AND order_id = ?", userId, orderId).
 		First(&order).Error; err != nil {
 		err = errors.New("未查询到订单信息")
 	}
 
+	o.formatClientOrder(order)
+
+	//tool.Dump(order)
+
+	a := time.Now().Sub(time.Time(order.PaidAt)).Minutes()
+	fmt.Println(a)
+
 	return
 }
 
-func (o *orderService) List(userId int, orderType int) (list []model.Order, err error) {
+// 计算订单的金额和时间
+func (o *orderService) formatClientOrder(order *response.OrderDetail) {
+	var totalAmount float64
+	for _, v := range order.PaymentOrderList {
+		totalAmount = totalAmount + v.Amount
+	}
 
+	// 总时长 （当前支付的金额 / 单价 * 60）
+	order.TotalMinutes = int32(math.Ceil((totalAmount / order.Table.Price) * 60))
+
+	if order.Status == model.OrderStatusPaySuccess {
+		// 使用时长
+		order.UsedMinutes = int32(time.Now().Sub(time.Time(order.PaidAt)).Minutes())
+	} else if order.Status == model.OrderStatusFinised {
+		order.UsedMinutes = int32(time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Minutes())
+	}
+
+	// 剩余时长
+	order.RemainMinutes = order.TotalMinutes - order.UsedMinutes
+	if order.RemainMinutes < 0 {
+		order.RemainMinutes = 0
+	}
+
+	//tool.Dump(order)
+}
+
+func (o *orderService) List(userId int, orderType int) (list []model.Order, err error) {
 	if err := o.db.
 		Preload("Table").
 		Preload("Table.Shop").
@@ -265,13 +317,14 @@ func (o *orderService) PaySuccess(orderNum string) (order model.Order, err error
 // 剩余时间用押金结算
 // 返回应该退多少押金
 
-func (o *orderService) settlement(order model.Order) {
+func (o *orderService) settlement(order *model.Order) {
 	// 计算
-	duration := time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Seconds()
+	minutes := time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Minutes()
 
+	fmt.Println("minutes", minutes)
 	// 有优惠券的话，先减掉优惠券的时间
 
-	amount := order.Price / 3600 * duration
-	order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", amount), 64)
+	order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
 
+	tool.Dump(order)
 }
