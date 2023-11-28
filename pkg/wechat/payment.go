@@ -16,6 +16,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// 微信支付相关
+// 官方文档：https://github.com/wechatpay-apiv3/wechatpay-go
+
 type Payment struct {
 	appId               string // 小程序appid
 	mchId               string // 商户号
@@ -89,7 +92,7 @@ func (p *Payment) getClient() (client *core.Client) {
 }
 
 func (p *Payment) GetPayResult(c *gin.Context) (
-	transaction payments.Transaction, request *notify.Request, err error) {
+	transaction *payments.Transaction, request *notify.Request, err error) {
 
 	// 1. 使用 `RegisterDownloaderWithPrivateKey` 注册下载器
 	mchPrivateKey, _ := utils.LoadPrivateKeyWithPath(p.mchCertKeyFile)
@@ -114,6 +117,8 @@ func (p *Payment) GetPayResult(c *gin.Context) (
 			zap.String("err", err.Error()))
 	}
 
+	transaction = new(payments.Transaction)
+
 	// 4. 解密数据
 	// 如果验签未通过，或者解密失败
 	if request, err = handler.ParseNotifyRequest(context.Background(), c.Request, transaction); err != nil {
@@ -123,6 +128,10 @@ func (p *Payment) GetPayResult(c *gin.Context) (
 		err = errors.New("数据解密失败" + err.Error())
 		return
 	}
+
+	log.GetLogger().Info("payment_response",
+		zap.Any("request", request),
+		zap.Any("transaction", transaction))
 
 	return
 }
