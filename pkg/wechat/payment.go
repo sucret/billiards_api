@@ -77,17 +77,21 @@ func (p *Payment) GetRefundDetail(refundNum string) {
 func (p *Payment) Refund(amount, total int32, transactionId, outTradeNo, outRefundNo, reason string) (
 	resp *refunddomestic.Refund, err error) {
 
+	fmt.Println(amount, total, transactionId, outTradeNo, outRefundNo, reason)
+	client := p.getClient()
 	ctx := context.Background()
 
-	svc := refunddomestic.RefundsApiService{Client: p.getClient()}
+	fmt.Println(12312)
+
+	svc := refunddomestic.RefundsApiService{Client: client}
 	resp, result, err := svc.Create(ctx,
 		refunddomestic.CreateRequest{
 			TransactionId: core.String(transactionId),
 			OutTradeNo:    core.String(outTradeNo),
 			OutRefundNo:   core.String(outRefundNo),
 			Reason:        core.String(reason),
-			//NotifyUrl:     core.String("https://weixin.qq.com"),
-			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
+			NotifyUrl:     core.String("https://weixin.qq.com"),
+			FundsAccount:  refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
 				Currency: core.String("CNY"),
 				Refund:   core.Int64(int64(amount)),
@@ -99,6 +103,8 @@ func (p *Payment) Refund(amount, total int32, transactionId, outTradeNo, outRefu
 	tool.Dump(result)
 	tool.Dump(resp)
 	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println(3234)
 		log.GetLogger().Error("refund_error", zap.String("msg", err.Error()))
 		return
 	}

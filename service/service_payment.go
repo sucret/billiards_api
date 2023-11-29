@@ -27,10 +27,14 @@ var PaymentService = &paymentService{
 
 func (p *paymentService) Tt() {
 	paymentOrder := model.PaymentOrder{}
-	p.db.Where("payment_order_id = ?", 12).First(&paymentOrder)
+	p.db.Where("payment_order_id = ?", 2).First(&paymentOrder)
 
-	tool.Dump(paymentOrder)
+	refundOrder, err := p.Refund(paymentOrder, 10)
+	if err != nil {
+		return
+	}
 
+	tool.Dump(refundOrder)
 }
 
 // 给指定付款单退款
@@ -43,17 +47,21 @@ func (p *paymentService) Refund(paymentOrder model.PaymentOrder, amount int32) (
 	// 2、发起退款
 	// 3、回写退款单信息
 	// 4、返回退款结果
-	resp, err := wechat.NewPayment().Refund(amount, paymentOrder.Amount, paymentOrder.TransactionID,
-		paymentOrder.OrderNum, refundOrder.RefundNum, "退款")
 
 	refundOrder = model.RefundOrder{
 		OrderID:        paymentOrder.OrderID,
 		PaymentOrderID: paymentOrder.PaymentOrderID,
 		Amount:         amount,
-		Status:         int32(model.RefundStatusMapping[string(*resp.Status)]),
-		RefundNum:      tool.GenerateOrderNum(),
-		WxRefundID:     *resp.RefundId,
+		//Status:         int32(model.RefundStatusMapping[string(*resp.Status)]),
+		RefundNum: tool.GenerateOrderNum(),
+		//WxRefundID:     *resp.RefundId,
 	}
+
+	resp, err := wechat.NewPayment().Refund(amount, paymentOrder.Amount, paymentOrder.TransactionID,
+		paymentOrder.OrderNum, refundOrder.RefundNum, "退款")
+
+	refundOrder.Status = int32(model.RefundStatusMapping[string(*resp.Status)])
+	refundOrder.WxRefundID = *resp.RefundId
 
 	err = p.db.Create(&refundOrder).Error
 

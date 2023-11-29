@@ -340,5 +340,6 @@ func (o *orderService) settlement(order *model.Order) {
 	order.Amount = order.Table.Price / 60 * int32(minutes)
 	//order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
 
+	fmt.Println("订单：")
 	tool.Dump(order)
 }
