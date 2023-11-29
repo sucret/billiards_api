@@ -30,7 +30,7 @@ func newPaymentOrder(db *gorm.DB) paymentOrder {
 	_paymentOrder.PaymentOrderID = field.NewInt32(tableName, "payment_order_id")
 	_paymentOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_paymentOrder.OrderNum = field.NewString(tableName, "order_num")
-	_paymentOrder.Amount = field.NewFloat64(tableName, "amount")
+	_paymentOrder.Amount = field.NewInt32(tableName, "amount")
 	_paymentOrder.NotifyID = field.NewString(tableName, "notify_id")
 	_paymentOrder.Resource = field.NewString(tableName, "resource")
 	_paymentOrder.BankType = field.NewString(tableName, "bank_type")
@@ -51,7 +51,7 @@ type paymentOrder struct {
 	PaymentOrderID field.Int32
 	OrderID        field.Int32
 	OrderNum       field.String // 订单号
-	Amount         field.Float64
+	Amount         field.Int32
 	NotifyID       field.String // 微信通知id
 	Resource       field.String
 	BankType       field.String // 银行
@@ -88,7 +88,7 @@ func (p *paymentOrder) updateTableName(table string) *paymentOrder {
 	p.PaymentOrderID = field.NewInt32(table, "payment_order_id")
 	p.OrderID = field.NewInt32(table, "order_id")
 	p.OrderNum = field.NewString(table, "order_num")
-	p.Amount = field.NewFloat64(table, "amount")
+	p.Amount = field.NewInt32(table, "amount")
 	p.NotifyID = field.NewString(table, "notify_id")
 	p.Resource = field.NewString(table, "resource")
 	p.BankType = field.NewString(table, "bank_type")

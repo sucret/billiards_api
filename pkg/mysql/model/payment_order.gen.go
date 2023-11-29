@@ -8,14 +8,14 @@ const TableNamePaymentOrder = "payment_order"
 
 // PaymentOrder mapped from table <payment_order>
 type PaymentOrder struct {
-	PaymentOrderID int32   `gorm:"column:payment_order_id;type:int(11);primaryKey;autoIncrement:true" json:"payment_order_id"`
-	OrderID        int32   `gorm:"column:order_id;type:int(11);not null" json:"order_id"`
-	OrderNum       string  `gorm:"column:order_num;type:char(20);not null" json:"order_num"` // 订单号
-	Amount         float64 `gorm:"column:amount;type:decimal(10,2);not null;default:0.00" json:"amount"`
-	NotifyID       string  `gorm:"column:notify_id;type:char(100);not null" json:"notify_id"` // 微信通知id
-	Resource       string  `gorm:"column:resource;type:text" json:"resource"`
-	BankType       string  `gorm:"column:bank_type;type:char(32);not null" json:"bank_type"`           // 银行
-	TransactionID  string  `gorm:"column:transaction_id;type:char(32);not null" json:"transaction_id"` // 微信支付系统订单号
+	PaymentOrderID int32  `gorm:"column:payment_order_id;type:int(11);primaryKey;autoIncrement:true" json:"payment_order_id"`
+	OrderID        int32  `gorm:"column:order_id;type:int(11);not null" json:"order_id"`
+	OrderNum       string `gorm:"column:order_num;type:char(20);not null" json:"order_num"` // 订单号
+	Amount         int32  `gorm:"column:amount;type:int(11);not null" json:"amount"`
+	NotifyID       string `gorm:"column:notify_id;type:char(100);not null" json:"notify_id"` // 微信通知id
+	Resource       string `gorm:"column:resource;type:text" json:"resource"`
+	BankType       string `gorm:"column:bank_type;type:char(32);not null" json:"bank_type"`           // 银行
+	TransactionID  string `gorm:"column:transaction_id;type:char(32);not null" json:"transaction_id"` // 微信支付系统订单号
 	/*
 		交易状态，枚举值：
 		SUCCESS：支付成功

@@ -14,12 +14,12 @@ type Order struct {
 	Status           int32          `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID           int32          `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`
 	TableID          int32          `gorm:"column:table_id;type:int(11);not null" json:"table_id"`
-	Amount           float64        `gorm:"column:amount;type:decimal(10,2);not null;default:0.00" json:"amount"`                 // 金额
+	Amount           int32          `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 金额
 	CreatedAt        Time           `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"` // 创建时间
 	UpdatedAt        Time           `gorm:"column:updated_at;type:datetime" json:"updated_at"`                                    // 更新时间
 	PaidAt           Time           `gorm:"column:paid_at;type:datetime" json:"paid_at"`                                          // 支付时间
 	TerminatedAt     Time           `gorm:"column:terminated_at;type:datetime" json:"terminated_at"`                              // 终止时间
-	Price            float64        `gorm:"column:price;type:decimal(10,2);not null;default:0.00" json:"price"`                   // 价格
+	Price            int32          `gorm:"column:price;type:int(11);not null" json:"price"`                                      // 价格
 	Table            Table          `gorm:"belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"table"`
 	PaymentOrderList []PaymentOrder `gorm:"hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID" json:"payment_order_list"`
 }

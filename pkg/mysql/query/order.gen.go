@@ -33,12 +33,12 @@ func newOrder(db *gorm.DB) order {
 	_order.Status = field.NewInt32(tableName, "status")
 	_order.ShopID = field.NewInt32(tableName, "shop_id")
 	_order.TableID = field.NewInt32(tableName, "table_id")
-	_order.Amount = field.NewFloat64(tableName, "amount")
+	_order.Amount = field.NewInt32(tableName, "amount")
 	_order.CreatedAt = field.NewField(tableName, "created_at")
 	_order.UpdatedAt = field.NewField(tableName, "updated_at")
 	_order.PaidAt = field.NewField(tableName, "paid_at")
 	_order.TerminatedAt = field.NewField(tableName, "terminated_at")
-	_order.Price = field.NewFloat64(tableName, "price")
+	_order.Price = field.NewInt32(tableName, "price")
 
 	_order.fillFieldMap()
 
@@ -55,12 +55,12 @@ type order struct {
 	Status       field.Int32 // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID       field.Int32
 	TableID      field.Int32
-	Amount       field.Float64 // 金额
-	CreatedAt    field.Field   // 创建时间
-	UpdatedAt    field.Field   // 更新时间
-	PaidAt       field.Field   // 支付时间
-	TerminatedAt field.Field   // 终止时间
-	Price        field.Float64 // 价格
+	Amount       field.Int32 // 金额
+	CreatedAt    field.Field // 创建时间
+	UpdatedAt    field.Field // 更新时间
+	PaidAt       field.Field // 支付时间
+	TerminatedAt field.Field // 终止时间
+	Price        field.Int32 // 价格
 
 	fieldMap map[string]field.Expr
 }
@@ -83,12 +83,12 @@ func (o *order) updateTableName(table string) *order {
 	o.Status = field.NewInt32(table, "status")
 	o.ShopID = field.NewInt32(table, "shop_id")
 	o.TableID = field.NewInt32(table, "table_id")
-	o.Amount = field.NewFloat64(table, "amount")
+	o.Amount = field.NewInt32(table, "amount")
 	o.CreatedAt = field.NewField(table, "created_at")
 	o.UpdatedAt = field.NewField(table, "updated_at")
 	o.PaidAt = field.NewField(table, "paid_at")
 	o.TerminatedAt = field.NewField(table, "terminated_at")
-	o.Price = field.NewFloat64(table, "price")
+	o.Price = field.NewInt32(table, "price")
 
 	o.fillFieldMap()
 

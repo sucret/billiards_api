@@ -20,3 +20,9 @@ func (*wechatApi) PayNotify(c *gin.Context) {
 
 	response.Success(c, nil)
 }
+
+func (*wechatApi) Refund(c *gin.Context) {
+	service.PaymentService.Tt()
+	//wechat.NewPayment().GetRefundDetail("202311280954078129131")
+	//wechat.NewPayment().Refund()
+}

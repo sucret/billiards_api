@@ -2,8 +2,10 @@ package wechat
 
 import (
 	"billiards/pkg/log"
+	"billiards/pkg/tool"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
@@ -12,6 +14,7 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"go.uber.org/zap"
 )
@@ -42,8 +45,69 @@ func NewPayment() (p *Payment) {
 	return
 }
 
+// 订单查询
+// https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_2.shtml
+func (p *Payment) GetPaymentOrderDetail(orderNum string) {
+
+}
+
+// 获取退款详情
+// https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_10.shtml
+func (p *Payment) GetRefundDetail(refundNum string) {
+	ctx := context.Background()
+	client := p.getClient()
+
+	svc := refunddomestic.RefundsApiService{Client: client}
+	resp, result, err := svc.QueryByOutRefundNo(ctx,
+		refunddomestic.QueryByOutRefundNoRequest{
+			OutRefundNo: core.String(refundNum),
+		},
+	)
+
+	tool.Dump(resp)
+	tool.Dump(result)
+	if err != nil {
+		// 处理错误
+		fmt.Printf("call QueryByOutRefundNo err:%s", err)
+	}
+}
+
+// 发起退款并返回退款结果
+// https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_9.shtml
+func (p *Payment) Refund(amount, total int32, transactionId, outTradeNo, outRefundNo, reason string) (
+	resp *refunddomestic.Refund, err error) {
+
+	ctx := context.Background()
+
+	svc := refunddomestic.RefundsApiService{Client: p.getClient()}
+	resp, result, err := svc.Create(ctx,
+		refunddomestic.CreateRequest{
+			TransactionId: core.String(transactionId),
+			OutTradeNo:    core.String(outTradeNo),
+			OutRefundNo:   core.String(outRefundNo),
+			Reason:        core.String(reason),
+			//NotifyUrl:     core.String("https://weixin.qq.com"),
+			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
+			Amount: &refunddomestic.AmountReq{
+				Currency: core.String("CNY"),
+				Refund:   core.Int64(int64(amount)),
+				Total:    core.Int64(int64(total)),
+			},
+		},
+	)
+
+	tool.Dump(result)
+	tool.Dump(resp)
+	if err != nil {
+		log.GetLogger().Error("refund_error", zap.String("msg", err.Error()))
+		return
+	}
+
+	return
+}
+
 // 生成小程序预支付订单（用于前端调起微信支付）
-func (p *Payment) GetPrepayBill(openId, description, outTradeNo string, amount int64) (
+func (p *Payment) GetPrepayBill(openId, description, outTradeNo string, amount int32) (
 	res *jsapi.PrepayWithRequestPaymentResponse, err error) {
 	client := p.getClient()
 	svc := jsapi.JsapiApiService{Client: client}
@@ -58,7 +122,7 @@ func (p *Payment) GetPrepayBill(openId, description, outTradeNo string, amount i
 		Attach:      core.String(""),
 		NotifyUrl:   core.String(p.notifyUrl),
 		Amount: &jsapi.Amount{
-			Total: core.Int64(amount),
+			Total: core.Int64(int64(amount)),
 		},
 		Payer: &jsapi.Payer{
 			Openid: core.String(openId),

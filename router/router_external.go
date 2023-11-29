@@ -11,5 +11,8 @@ func setExternalRoute(r *gin.Engine) {
 	{
 		// 微信支付回调
 		clientRouters.Any("/wechat/pay-notify", api.WechatApi.PayNotify)
+
+		// 退款测试
+		clientRouters.GET("/wechat/refund", api.WechatApi.Refund)
 	}
 }

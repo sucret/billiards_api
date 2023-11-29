@@ -12,9 +12,7 @@ import (
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"math"
 	"math/rand"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -57,6 +55,7 @@ func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDeta
 	// 获取订单信息
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
 		Preload("Table").
+		Preload("PaymentOrderList").
 		Where("user_id = ? AND order_id = ? AND status = ?", userId, orderId, model.OrderStatusPaySuccess).
 		First(&order).Error; err != nil {
 		err = errors.New("未查询到订单信息")
@@ -80,6 +79,8 @@ func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDeta
 	o.settlement(&order.Order)
 
 	// todo 退押金
+	//PaymentService.Refund(order.Order)
+	o.refund(order.Order)
 
 	if err = tx.Save(&order.Order).Error; err != nil {
 		tx.Rollback()
@@ -93,6 +94,18 @@ func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDeta
 	order, err = o.Detail(userId, orderId)
 
 	return
+}
+
+// 退款
+func (o *orderService) refund(order model.Order) {
+	var totalAmount int32
+	for _, v := range order.PaymentOrderList {
+		totalAmount = totalAmount + v.Amount
+	}
+
+	refundAmount := totalAmount - order.Amount
+
+	PaymentService.RefundOrder(order, refundAmount)
 }
 
 func (o *orderService) Detail(userId, orderId int) (order *response.OrderDetail, err error) {
@@ -118,13 +131,13 @@ func (o *orderService) Detail(userId, orderId int) (order *response.OrderDetail,
 
 // 计算订单的金额和时间
 func (o *orderService) formatClientOrder(order *response.OrderDetail) {
-	var totalAmount float64
+	var totalAmount int32
 	for _, v := range order.PaymentOrderList {
 		totalAmount = totalAmount + v.Amount
 	}
 
 	// 总时长 （当前支付的金额 / 单价 * 60）
-	order.TotalMinutes = int32(math.Ceil((totalAmount / order.Table.Price) * 60))
+	order.TotalMinutes = (totalAmount / order.Table.Price) * 60
 
 	if order.Status == model.OrderStatusPaySuccess {
 		// 使用时长
@@ -324,7 +337,8 @@ func (o *orderService) settlement(order *model.Order) {
 	fmt.Println("minutes", minutes)
 	// 有优惠券的话，先减掉优惠券的时间
 
-	order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
+	order.Amount = order.Table.Price / 60 * int32(minutes)
+	//order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
 
 	tool.Dump(order)
 }

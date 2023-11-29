@@ -19,6 +19,7 @@ var (
 	Order        *order
 	OrderLog     *orderLog
 	PaymentOrder *paymentOrder
+	RefundOrder  *refundOrder
 	Role         *role
 	RoleNode     *roleNode
 	Shop         *shop
@@ -37,6 +38,7 @@ func SetDefault(db *gorm.DB) {
 	Order = &Q.Order
 	OrderLog = &Q.OrderLog
 	PaymentOrder = &Q.PaymentOrder
+	RefundOrder = &Q.RefundOrder
 	Role = &Q.Role
 	RoleNode = &Q.RoleNode
 	Shop = &Q.Shop
@@ -56,6 +58,7 @@ func Use(db *gorm.DB) *Query {
 		Order:        newOrder(db),
 		OrderLog:     newOrderLog(db),
 		PaymentOrder: newPaymentOrder(db),
+		RefundOrder:  newRefundOrder(db),
 		Role:         newRole(db),
 		RoleNode:     newRoleNode(db),
 		Shop:         newShop(db),
@@ -76,6 +79,7 @@ type Query struct {
 	Order        order
 	OrderLog     orderLog
 	PaymentOrder paymentOrder
+	RefundOrder  refundOrder
 	Role         role
 	RoleNode     roleNode
 	Shop         shop
@@ -97,6 +101,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Order:        q.Order.clone(db),
 		OrderLog:     q.OrderLog.clone(db),
 		PaymentOrder: q.PaymentOrder.clone(db),
+		RefundOrder:  q.RefundOrder.clone(db),
 		Role:         q.Role.clone(db),
 		RoleNode:     q.RoleNode.clone(db),
 		Shop:         q.Shop.clone(db),
@@ -115,6 +120,7 @@ type queryCtx struct {
 	Order        IOrderDo
 	OrderLog     IOrderLogDo
 	PaymentOrder IPaymentOrderDo
+	RefundOrder  IRefundOrderDo
 	Role         IRoleDo
 	RoleNode     IRoleNodeDo
 	Shop         IShopDo
@@ -133,6 +139,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Order:        q.Order.WithContext(ctx),
 		OrderLog:     q.OrderLog.WithContext(ctx),
 		PaymentOrder: q.PaymentOrder.WithContext(ctx),
+		RefundOrder:  q.RefundOrder.WithContext(ctx),
 		Role:         q.Role.WithContext(ctx),
 		RoleNode:     q.RoleNode.WithContext(ctx),
 		Shop:         q.Shop.WithContext(ctx),

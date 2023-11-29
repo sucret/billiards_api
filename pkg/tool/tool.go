@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gogf/gf/util/gconv"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 func Dump(data interface{}) {
@@ -47,5 +49,13 @@ func HttpBuildQuery(params map[string]interface{}, parentKey string) (str string
 		}
 	}
 	str = strings.Join(paramsArr, "&")
+	return
+}
+
+func GenerateOrderNum() (orderNum string) {
+	rand.Seed(time.Now().UnixNano())
+	num := rand.Intn(999999)
+	orderNum = time.Now().Format("20060102150405") + fmt.Sprintf("%0*d", 6, num)
+
 	return
 }
