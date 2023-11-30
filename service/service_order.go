@@ -152,15 +152,19 @@ func (o *orderService) formatClientOrder(order *response.OrderDetail) {
 		order.RemainMinutes = 0
 	}
 
-	//tool.Dump(order)
+	tool.Dump(order)
 }
 
 func (o *orderService) List(userId int, orderType int) (list []model.Order, err error) {
-	if err := o.db.
-		Preload("Table").
-		Preload("Table.Shop").
-		Where("status = ? AND user_id = ?", orderType, userId).
-		Order("order_id desc").
+	query := o.db.Preload("Table").Preload("Table.Shop")
+
+	if orderType == 0 {
+		query.Where("status in ? AND user_id = ?",
+			[]int{model.OrderStatusPaySuccess, model.OrderStatusFinised}, userId)
+	} else {
+		query.Where("status = ? AND user_id = ?", orderType, userId)
+	}
+	if err := query.Order("order_id desc").
 		Find(&list).Error; err != nil {
 		fmt.Println(err)
 	}
@@ -230,6 +234,7 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	// 先查询出球桌，判断一下是否可以开台
 	table := model.Table{}
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
+		Preload("Shop").
 		Where("table_id = ? AND status = ?", tableId, model.TableStatusClose).
 		First(&table).Error; err != nil {
 
@@ -268,7 +273,7 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	}
 
 	// 生成预支付的参数
-	payment, err := PaymentService.MakePrepayOrder(order, user.OpenID, table.Name, order.OrderNum, table.Price)
+	payment, err := PaymentService.MakePrepayOrder(order, user.OpenID, table.Name, order.OrderNum, table.Shop.Deposit)
 
 	resp.Order = &order
 	resp.JsApi = payment

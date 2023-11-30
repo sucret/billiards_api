@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 	"sync"
+	"time"
 )
 
 type tableService struct {
@@ -91,6 +92,7 @@ func (t *tableService) Disable(tableId int32) (table model.Table, err error) {
 		//}
 	}
 
+	table.ActivatedAt = model.Time{}
 	table.Status = model.TableStatusClose
 	if err = tx.Save(table).Error; err != nil {
 		err = errors.New("关闭球桌失败")
@@ -138,6 +140,7 @@ func (t *tableService) Enable(tableId int32) (table model.Table, err error) {
 		//}
 	}
 
+	table.ActivatedAt = model.Time(time.Now())
 	table.Status = model.TableStatusOpen
 	if err = tx.Save(table).Error; err != nil {
 		err = errors.New("开启失败")

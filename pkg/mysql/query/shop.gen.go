@@ -30,6 +30,7 @@ func newShop(db *gorm.DB) shop {
 	_shop.ShopID = field.NewInt32(tableName, "shop_id")
 	_shop.Name = field.NewString(tableName, "name")
 	_shop.Status = field.NewInt32(tableName, "status")
+	_shop.Deposit = field.NewInt32(tableName, "deposit")
 	_shop.Address = field.NewString(tableName, "address")
 	_shop.Longitude = field.NewFloat64(tableName, "longitude")
 	_shop.Latitude = field.NewFloat64(tableName, "latitude")
@@ -47,6 +48,7 @@ type shop struct {
 	ShopID    field.Int32
 	Name      field.String  // 门店名称
 	Status    field.Int32   // 门店状态，1｜开启，2｜关闭
+	Deposit   field.Int32   // 押金
 	Address   field.String  // 店铺地址
 	Longitude field.Float64 // 经度
 	Latitude  field.Float64 // 纬度
@@ -70,6 +72,7 @@ func (s *shop) updateTableName(table string) *shop {
 	s.ShopID = field.NewInt32(table, "shop_id")
 	s.Name = field.NewString(table, "name")
 	s.Status = field.NewInt32(table, "status")
+	s.Deposit = field.NewInt32(table, "deposit")
 	s.Address = field.NewString(table, "address")
 	s.Longitude = field.NewFloat64(table, "longitude")
 	s.Latitude = field.NewFloat64(table, "latitude")
@@ -96,10 +99,11 @@ func (s *shop) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *shop) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 7)
+	s.fieldMap = make(map[string]field.Expr, 8)
 	s.fieldMap["shop_id"] = s.ShopID
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["status"] = s.Status
+	s.fieldMap["deposit"] = s.Deposit
 	s.fieldMap["address"] = s.Address
 	s.fieldMap["longitude"] = s.Longitude
 	s.fieldMap["latitude"] = s.Latitude

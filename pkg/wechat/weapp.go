@@ -3,8 +3,10 @@ package wechat
 import (
 	"billiards/pkg/config"
 	"billiards/pkg/redis"
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -24,6 +26,12 @@ type Code2SessionResp struct {
 type AccessTokenResp struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int    `json:"expires_in"`
+}
+
+type QrcodeResp struct {
+	Buffer    string `json:"buffer"`
+	ErrorCode int    `json:"errcode"`
+	ErrorMsg  string `json:"errmsg"`
 }
 
 type WeApp struct {
@@ -67,6 +75,36 @@ func (w WeApp) Code2Session(code string) (r Code2SessionResp, err error) {
 	}
 
 	return
+}
+
+func (w WeApp) GenQrcode(page, scene string) (r QrcodeResp) {
+	token, err := w.GetAccessToken()
+	if err != nil {
+		return
+	}
+
+	url := baseUrl + "/wxa/getwxacodeunlimit?access_token=" + token
+
+	param := make(map[string]string)
+	param["page"] = page
+	param["scene"] = scene
+	param["env_version"] = "trial"
+
+	byteParam, _ := json.Marshal(param)
+	reader := bytes.NewReader(byteParam)
+	resp, err := http.Post(url, "application/json;charset=UTF-8", reader)
+	fmt.Println(err)
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	err = json.Unmarshal(body, &r)
+	fmt.Println(r)
+
+	return
+
 }
 
 // 获取access_token，并缓存7000秒

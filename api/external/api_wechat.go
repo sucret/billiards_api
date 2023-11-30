@@ -1,6 +1,7 @@
 package api
 
 import (
+	"billiards/pkg/wechat"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,16 @@ func (*wechatApi) PayNotify(c *gin.Context) {
 }
 
 func (*wechatApi) Refund(c *gin.Context) {
-	service.PaymentService.Tt()
+
+	wechat.GetApp("client").GenQrcode("pages/shop/detail/shopDetail", "shop_id=1")
+	//if err != nil {
+	//	return
+	//}
+	//fmt.Println(token)
+
+	//fmt.Println(model.Time{})
+	//return
+	//service.PaymentService.Tt()
 	//wechat.NewPayment().GetRefundDetail("202311280954078129131")
 	//wechat.NewPayment().Refund()
 }
