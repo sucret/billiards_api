@@ -216,7 +216,7 @@ func (o *tableOrderService) GenerateOrderNum() (orderNum string) {
 }
 
 // 创建订单
-func (o *tableOrderService) Create(tableId, userId int32) (resp response.PrePayParam, err error) {
+func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOrderPrePayParam, err error) {
 	// todo 暂时先在创建订单的时候关闭过期的订单，后边需要移动到定时任务里边去
 	go o.TimingCancel()
 

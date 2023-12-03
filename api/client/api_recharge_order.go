@@ -15,12 +15,12 @@ func (*rechargeOrderApi) Create(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.GetString("userId"))
 	rechargeType, _ := strconv.Atoi(c.Query("recharge_type"))
 
-	jsapiParam, _, err := service.RechargeOrderService.Create(int32(userId), rechargeType)
+	resp, err := service.RechargeOrderService.Create(int32(userId), rechargeType)
 	if err != nil {
 		return
 	}
 
-	response.Success(c, jsapiParam)
+	response.Success(c, resp)
 }
 
 func (*rechargeOrderApi) PayResult(c *gin.Context) {

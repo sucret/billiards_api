@@ -6,10 +6,10 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
+	"billiards/response"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"sync"
@@ -42,14 +42,14 @@ func (r *rechargeOrderService) PayResult(orderId, userId int32) (successful bool
 
 // 创建充值订单
 func (r *rechargeOrderService) Create(userId int32, rechargeAmount int) (
-	jsapiParam *jsapi.PrepayWithRequestPaymentResponse, order model.RechargeOrder, err error) {
+	resp response.RechargeOrderPrePayParam, err error) {
 	conf := config.GetConfig().RechargeAmount
 	// 超出配置范围则按最低档处理
 	if rechargeAmount < 0 || rechargeAmount >= len(conf) {
 		rechargeAmount = 0
 	}
 
-	order = model.RechargeOrder{
+	resp.Order = &model.RechargeOrder{
 		UserID:        userId,
 		Amount:        conf[rechargeAmount].Amount,
 		BundledAmount: conf[rechargeAmount].BundledAmount,
@@ -57,7 +57,7 @@ func (r *rechargeOrderService) Create(userId int32, rechargeAmount int) (
 	}
 
 	// 创建订单
-	if err = r.db.Create(&order).Error; err != nil {
+	if err = r.db.Create(resp.Order).Error; err != nil {
 		log.GetLogger().Error("create_recharge_order_err", zap.String("msg", err.Error()))
 		err = errors.New("创建订单失败，请重试")
 		return
@@ -65,11 +65,14 @@ func (r *rechargeOrderService) Create(userId int32, rechargeAmount int) (
 
 	// 创建预付款单
 	// 生成预支付的参数
-	jsapiParam, err = PaymentService.MakePrepayOrder(
-		userId, order.Amount, model.POTypeRecharge, order.OrderID, "会员充值")
+	jsapiParam, err := PaymentService.MakePrepayOrder(
+		userId, resp.Order.Amount, model.POTypeRecharge, resp.Order.OrderID, "会员充值")
 	if err != nil {
 		return
 	}
+
+	//resp.Order = &order
+	resp.JsApi = jsapiParam
 
 	return
 }
