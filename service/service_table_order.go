@@ -17,19 +17,19 @@ import (
 	"time"
 )
 
-type orderService struct {
+type tableOrderService struct {
 	db    *gorm.DB
 	redis *redis.Client
 	lock  sync.Mutex
 }
 
-var OrderService = &orderService{
+var TableOrderService = &tableOrderService{
 	db:    mysql.GetDB(),
 	redis: redis_.GetRedis(),
 	lock:  sync.Mutex{},
 }
 
-func (o *orderService) GetByTable(tableId, userId int) (order model.Order, err error) {
+func (o *tableOrderService) GetByTable(tableId, userId int) (order model.TableOrder, err error) {
 	if err = o.db.Where("table_id = ? AND user_id = ? AND status = ?",
 		tableId, userId, model.OrderStatusPaySuccess).
 		First(&order).Error; err != nil {
@@ -46,7 +46,7 @@ func (o *orderService) GetByTable(tableId, userId int) (order model.Order, err e
 // 结算
 // 发起微信退款
 // 修改订单状态
-func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDetail, err error) {
+func (o *tableOrderService) Terminate(userId, orderId int) (order *response.OrderDetail, err error) {
 	// todo 判断球杆柜是否关闭
 
 	tx := o.db.Begin()
@@ -76,13 +76,12 @@ func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDeta
 	order.TerminatedAt = model.Time(time.Now())
 
 	// 结算 回写订单金额
-	o.settlement(&order.Order)
+	o.settlement(&order.TableOrder)
 
 	// todo 退押金
-	//PaymentService.Refund(order.Order)
-	o.refund(order.Order)
+	o.refund(order.TableOrder)
 
-	if err = tx.Save(&order.Order).Error; err != nil {
+	if err = tx.Save(&order.TableOrder).Error; err != nil {
 		tx.Rollback()
 		err = errors.New("关闭失败")
 		return
@@ -97,7 +96,7 @@ func (o *orderService) Terminate(userId, orderId int) (order *response.OrderDeta
 }
 
 // 退款
-func (o *orderService) refund(order model.Order) {
+func (o *tableOrderService) refund(order model.TableOrder) {
 	var totalAmount int32
 	for _, v := range order.PaymentOrderList {
 		totalAmount = totalAmount + v.Amount
@@ -108,7 +107,7 @@ func (o *orderService) refund(order model.Order) {
 	PaymentService.RefundOrder(order, refundAmount)
 }
 
-func (o *orderService) Detail(userId, orderId int) (order *response.OrderDetail, err error) {
+func (o *tableOrderService) Detail(userId, orderId int) (order *response.OrderDetail, err error) {
 	if err := o.db.Preload("Table").
 		Preload("Table.Shop").
 		Preload("PaymentOrderList", func(db *gorm.DB) *gorm.DB {
@@ -123,14 +122,14 @@ func (o *orderService) Detail(userId, orderId int) (order *response.OrderDetail,
 
 	//tool.Dump(order)
 
-	a := time.Now().Sub(time.Time(order.PaidAt)).Minutes()
+	a := time.Now().Sub(time.Time(order.StartedAt)).Minutes()
 	fmt.Println(a)
 
 	return
 }
 
 // 计算订单的金额和时间
-func (o *orderService) formatClientOrder(order *response.OrderDetail) {
+func (o *tableOrderService) formatClientOrder(order *response.OrderDetail) {
 	var totalAmount int32
 	for _, v := range order.PaymentOrderList {
 		totalAmount = totalAmount + v.Amount
@@ -141,9 +140,9 @@ func (o *orderService) formatClientOrder(order *response.OrderDetail) {
 
 	if order.Status == model.OrderStatusPaySuccess {
 		// 使用时长
-		order.UsedMinutes = int32(time.Now().Sub(time.Time(order.PaidAt)).Minutes())
+		order.UsedMinutes = int32(time.Now().Sub(time.Time(order.StartedAt)).Minutes())
 	} else if order.Status == model.OrderStatusFinised {
-		order.UsedMinutes = int32(time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Minutes())
+		order.UsedMinutes = int32(time.Time(order.TerminatedAt).Sub(time.Time(order.StartedAt)).Minutes())
 	}
 
 	// 剩余时长
@@ -155,7 +154,7 @@ func (o *orderService) formatClientOrder(order *response.OrderDetail) {
 	tool.Dump(order)
 }
 
-func (o *orderService) List(userId int, orderType int) (list []model.Order, err error) {
+func (o *tableOrderService) List(userId int, orderType int) (list []model.TableOrder, err error) {
 	query := o.db.Preload("Table").Preload("Table.Shop")
 
 	if orderType == 0 {
@@ -173,9 +172,9 @@ func (o *orderService) List(userId int, orderType int) (list []model.Order, err 
 }
 
 // 查询用户自己订单的支付结果
-func (o *orderService) GetPayStatus(orderNum string, userId int32) (successful bool, err error) {
-	order := model.Order{}
-	if err = o.db.Where("order_num = ? AND user_id = ?", orderNum, userId).
+func (o *tableOrderService) GetPayStatus(orderId int, userId int32) (successful bool, err error) {
+	order := model.TableOrder{}
+	if err = o.db.Where("order_id = ? AND user_id = ?", orderId, userId).
 		First(&order).Error; err != nil {
 		err = errors.New("订单不存在")
 		return
@@ -187,8 +186,8 @@ func (o *orderService) GetPayStatus(orderNum string, userId int32) (successful b
 }
 
 // 取消10分钟前未支付的订单
-func (o *orderService) TimingCancel() {
-	var orderList []model.Order
+func (o *tableOrderService) TimingCancel() {
+	var orderList []model.TableOrder
 
 	t, _ := time.ParseDuration("-10m")
 	o.db.Where("status = ? AND created_at < ?", model.OrderStatusDefault,
@@ -208,7 +207,7 @@ func (o *orderService) TimingCancel() {
 }
 
 // 生成订单号
-func (o *orderService) GenerateOrderNum() (orderNum string) {
+func (o *tableOrderService) GenerateOrderNum() (orderNum string) {
 	rand.Seed(time.Now().UnixNano())
 	num := rand.Intn(999999)
 	orderNum = time.Now().Format("20060102150405") + fmt.Sprintf("%0*d", 6, num)
@@ -217,7 +216,7 @@ func (o *orderService) GenerateOrderNum() (orderNum string) {
 }
 
 // 创建订单
-func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam, err error) {
+func (o *tableOrderService) Create(tableId, userId int32) (resp response.PrePayParam, err error) {
 	// todo 暂时先在创建订单的时候关闭过期的订单，后边需要移动到定时任务里边去
 	go o.TimingCancel()
 
@@ -225,11 +224,11 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
-	order := model.Order{}
+	order := model.TableOrder{}
 	tx := o.db.Begin()
 
 	// 获取用户信息
-	user, _ := UserService.GetByUserId(userId)
+	//user, _ := UserService.GetByUserId(userId)
 
 	// 先查询出球桌，判断一下是否可以开台
 	table := model.Table{}
@@ -244,7 +243,7 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	}
 
 	// 需要判断这个球桌是否有支付中的订单(当前扫码用户的订单排除掉）
-	tmpOrder := model.Order{}
+	tmpOrder := model.TableOrder{}
 	tx.Where("table_id = ? AND status = ? AND user_id !=", tableId, model.OrderStatusDefault, userId).
 		First(&tmpOrder)
 	if tmpOrder.OrderID > 0 {
@@ -254,12 +253,11 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	}
 
 	// 创建订单
-	order = model.Order{
-		ShopID:   table.ShopID,
-		TableID:  table.TableID,
-		Status:   model.OrderStatusDefault,
-		UserID:   userId,
-		OrderNum: o.GenerateOrderNum(),
+	order = model.TableOrder{
+		ShopID:  table.ShopID,
+		TableID: table.TableID,
+		Status:  model.OrderStatusDefault,
+		UserID:  userId,
 	}
 
 	if err = tx.Create(&order).Error; err != nil {
@@ -273,7 +271,8 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	}
 
 	// 生成预支付的参数
-	payment, err := PaymentService.MakePrepayOrder(order, user.OpenID, table.Name, order.OrderNum, table.Shop.Deposit)
+	payment, err := PaymentService.MakePrepayOrder(
+		userId, table.Shop.Deposit, model.POTypeTable, order.OrderID, table.Name)
 
 	resp.Order = &order
 	resp.JsApi = payment
@@ -283,44 +282,42 @@ func (o *orderService) Create(tableId, userId int32) (resp response.PrePayParam,
 	return
 }
 
-func (o *orderService) PaySuccess(orderNum string) (order model.Order, err error) {
+func (o *tableOrderService) PaySuccess(orderId int32) (order model.TableOrder, err error) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
 	tx := o.db.Begin()
-	err = tx.Where("order_num = ? AND status = ?", orderNum, model.OrderStatusDefault).
+	err = tx.Where("order_id = ? AND status = ?", orderId, model.OrderStatusDefault).
 		First(&order).Error
 	if err != nil {
 		log.GetLogger().Error("pay_notify",
 			zap.String("err_msg", "没有查到订单或者订单支付状态已经完成"),
-			zap.String("order_num", orderNum))
+			zap.Int32("order_id", orderId))
 		tx.Rollback()
 		return
 	}
 
 	order.Status = model.OrderStatusPaySuccess
-	order.PaidAt = model.Time(time.Now())
+	order.StartedAt = model.Time(time.Now())
 
 	if err = tx.Save(&order).Error; err != nil {
 		log.GetLogger().Error("pay_notify",
 			zap.String("msg", "更新订单状态失败"),
 			zap.String("err_msg", err.Error()),
-			zap.String("order_num", orderNum))
+			zap.Int32("order_id", orderId))
 		tx.Rollback()
 	}
 
 	// 开台
 	table, err := TableService.Enable(order.TableID)
 	if err != nil {
-		tx.Rollback()
-
 		log.GetLogger().Error("pay_notify",
 			zap.String("msg", "开台失败"),
 			zap.Any("table", table),
-			zap.String("order_num", orderNum))
+			zap.Int32("order_id", orderId))
 		tx.Rollback()
 
-		return model.Order{}, err
+		return model.TableOrder{}, err
 	}
 
 	tx.Commit()
@@ -335,9 +332,9 @@ func (o *orderService) PaySuccess(orderNum string) (order model.Order, err error
 // 剩余时间用押金结算
 // 返回应该退多少押金
 
-func (o *orderService) settlement(order *model.Order) {
+func (o *tableOrderService) settlement(order *model.TableOrder) {
 	// 计算
-	minutes := time.Time(order.TerminatedAt).Sub(time.Time(order.PaidAt)).Minutes()
+	minutes := time.Time(order.TerminatedAt).Sub(time.Time(order.StartedAt)).Minutes()
 
 	fmt.Println("minutes", minutes)
 	// 有优惠券的话，先减掉优惠券的时间

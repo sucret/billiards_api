@@ -8,16 +8,17 @@ const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	UserID    int32  `gorm:"column:user_id;type:int(11);primaryKey;autoIncrement:true" json:"user_id"`
-	Nickname  string `gorm:"column:nickname;type:char(64);not null" json:"nickname"`
-	Avatar    string `gorm:"column:avatar;type:varchar(255);not null" json:"avatar"`
-	Gender    int32  `gorm:"column:gender;type:tinyint(4);not null" json:"gender"` // 性别 0：未知、1：男、2：女
-	Province  string `gorm:"column:province;type:varchar(32);not null" json:"province"`
-	City      string `gorm:"column:city;type:varchar(32);not null" json:"city"`
-	Country   string `gorm:"column:country;type:varchar(32);not null" json:"country"`
-	OpenID    string `gorm:"column:open_id;type:char(64);not null" json:"open_id"`
-	UnionID   string `gorm:"column:union_id;type:char(64);not null" json:"union_id"`
-	CreatedAt Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UserID         int32  `gorm:"column:user_id;type:int(11);primaryKey;autoIncrement:true" json:"user_id"`
+	OpenID         string `gorm:"column:open_id;type:char(64);not null" json:"open_id"`
+	Nickname       string `gorm:"column:nickname;type:char(64);not null" json:"nickname"`
+	AccountBalance int32  `gorm:"column:account_balance;type:int(11);not null" json:"account_balance"` // 账户余额
+	Avatar         string `gorm:"column:avatar;type:varchar(255);not null" json:"avatar"`
+	Gender         int32  `gorm:"column:gender;type:tinyint(4);not null" json:"gender"` // 性别 0：未知、1：男、2：女
+	Province       string `gorm:"column:province;type:varchar(32);not null" json:"province"`
+	City           string `gorm:"column:city;type:varchar(32);not null" json:"city"`
+	Country        string `gorm:"column:country;type:varchar(32);not null" json:"country"`
+	UnionID        string `gorm:"column:union_id;type:char(64);not null" json:"union_id"`
+	CreatedAt      Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
 // TableName User's table name

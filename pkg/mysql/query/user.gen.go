@@ -28,13 +28,14 @@ func newUser(db *gorm.DB) user {
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
 	_user.UserID = field.NewInt32(tableName, "user_id")
+	_user.OpenID = field.NewString(tableName, "open_id")
 	_user.Nickname = field.NewString(tableName, "nickname")
+	_user.AccountBalance = field.NewInt32(tableName, "account_balance")
 	_user.Avatar = field.NewString(tableName, "avatar")
 	_user.Gender = field.NewInt32(tableName, "gender")
 	_user.Province = field.NewString(tableName, "province")
 	_user.City = field.NewString(tableName, "city")
 	_user.Country = field.NewString(tableName, "country")
-	_user.OpenID = field.NewString(tableName, "open_id")
 	_user.UnionID = field.NewString(tableName, "union_id")
 	_user.CreatedAt = field.NewField(tableName, "created_at")
 
@@ -46,17 +47,18 @@ func newUser(db *gorm.DB) user {
 type user struct {
 	userDo userDo
 
-	ALL       field.Asterisk
-	UserID    field.Int32
-	Nickname  field.String
-	Avatar    field.String
-	Gender    field.Int32 // 性别 0：未知、1：男、2：女
-	Province  field.String
-	City      field.String
-	Country   field.String
-	OpenID    field.String
-	UnionID   field.String
-	CreatedAt field.Field
+	ALL            field.Asterisk
+	UserID         field.Int32
+	OpenID         field.String
+	Nickname       field.String
+	AccountBalance field.Int32 // 账户余额
+	Avatar         field.String
+	Gender         field.Int32 // 性别 0：未知、1：男、2：女
+	Province       field.String
+	City           field.String
+	Country        field.String
+	UnionID        field.String
+	CreatedAt      field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -74,13 +76,14 @@ func (u user) As(alias string) *user {
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
 	u.UserID = field.NewInt32(table, "user_id")
+	u.OpenID = field.NewString(table, "open_id")
 	u.Nickname = field.NewString(table, "nickname")
+	u.AccountBalance = field.NewInt32(table, "account_balance")
 	u.Avatar = field.NewString(table, "avatar")
 	u.Gender = field.NewInt32(table, "gender")
 	u.Province = field.NewString(table, "province")
 	u.City = field.NewString(table, "city")
 	u.Country = field.NewString(table, "country")
-	u.OpenID = field.NewString(table, "open_id")
 	u.UnionID = field.NewString(table, "union_id")
 	u.CreatedAt = field.NewField(table, "created_at")
 
@@ -105,15 +108,16 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 10)
+	u.fieldMap = make(map[string]field.Expr, 11)
 	u.fieldMap["user_id"] = u.UserID
+	u.fieldMap["open_id"] = u.OpenID
 	u.fieldMap["nickname"] = u.Nickname
+	u.fieldMap["account_balance"] = u.AccountBalance
 	u.fieldMap["avatar"] = u.Avatar
 	u.fieldMap["gender"] = u.Gender
 	u.fieldMap["province"] = u.Province
 	u.fieldMap["city"] = u.City
 	u.fieldMap["country"] = u.Country
-	u.fieldMap["open_id"] = u.OpenID
 	u.fieldMap["union_id"] = u.UnionID
 	u.fieldMap["created_at"] = u.CreatedAt
 }

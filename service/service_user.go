@@ -1,20 +1,22 @@
 package service
 
 import (
+	"billiards/pkg/log"
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-type user struct {
+type userService struct {
 	db *gorm.DB
 }
 
-var UserService = &user{
+var UserService = &userService{
 	db: mysql.GetDB(),
 }
 
-func (u *user) Login(code string) (user *model.User, err error) {
+func (u *userService) Login(code string) (user *model.User, err error) {
 	resp, err := WeApp.Login(code)
 	if err != nil {
 		return
@@ -29,7 +31,19 @@ func (u *user) Login(code string) (user *model.User, err error) {
 	return
 }
 
-func (u *user) GetByUserId(userId int32) (user model.User, err error) {
+func (u *userService) GetByUserId(userId int32) (user model.User, err error) {
 	err = u.db.Where("user_id = ?", userId).First(&user).Error
+	return
+}
+
+func (u *userService) Recharge(amount, userId int32) (user model.User, err error) {
+	if err = u.db.Where("user_id = ?", userId).First(&user).Error; err != nil {
+		log.GetLogger().Error("recharge_error", zap.String("msg", err.Error()))
+		return
+	}
+
+	user.AccountBalance = user.AccountBalance + amount
+
+	u.db.Save(&user)
 	return
 }

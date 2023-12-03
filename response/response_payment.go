@@ -7,5 +7,5 @@ import (
 
 type PrePayParam struct {
 	JsApi *jsapi.PrepayWithRequestPaymentResponse `json:"js_api"`
-	Order *model.Order                            `json:"order"`
+	Order *model.TableOrder                       `json:"order"`
 }

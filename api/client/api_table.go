@@ -36,7 +36,7 @@ func (*tableApi) GetOrder(c *gin.Context) {
 	}
 	userId, _ := strconv.Atoi(c.GetString("userId"))
 
-	order, err := service.OrderService.GetByTable(tableId, userId)
+	order, err := service.TableOrderService.GetByTable(tableId, userId)
 	if err != nil {
 		response.Success(c, nil)
 		return

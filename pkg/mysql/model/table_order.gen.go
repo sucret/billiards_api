@@ -4,12 +4,11 @@
 
 package model
 
-const TableNameOrder = "order"
+const TableNameTableOrder = "table_order"
 
-// Order mapped from table <order>
-type Order struct {
+// TableOrder mapped from table <table_order>
+type TableOrder struct {
 	OrderID          int32          `gorm:"column:order_id;type:int(11);primaryKey;autoIncrement:true" json:"order_id"`
-	OrderNum         string         `gorm:"column:order_num;type:char(20);not null" json:"order_num"` // 订单号
 	UserID           int32          `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
 	Status           int32          `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID           int32          `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`
@@ -17,14 +16,14 @@ type Order struct {
 	Amount           int32          `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 金额
 	CreatedAt        Time           `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"` // 创建时间
 	UpdatedAt        Time           `gorm:"column:updated_at;type:datetime" json:"updated_at"`                                    // 更新时间
-	PaidAt           Time           `gorm:"column:paid_at;type:datetime" json:"paid_at"`                                          // 支付时间
+	StartedAt        Time           `gorm:"column:started_at;type:datetime" json:"started_at"`                                    // 支付时间
 	TerminatedAt     Time           `gorm:"column:terminated_at;type:datetime" json:"terminated_at"`                              // 终止时间
 	Price            int32          `gorm:"column:price;type:int(11);not null" json:"price"`                                      // 价格
 	Table            Table          `gorm:"belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"table"`
 	PaymentOrderList []PaymentOrder `gorm:"hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID" json:"payment_order_list"`
 }
 
-// TableName Order's table name
-func (*Order) TableName() string {
-	return TableNameOrder
+// TableName TableOrder's table name
+func (*TableOrder) TableName() string {
+	return TableNameTableOrder
 }

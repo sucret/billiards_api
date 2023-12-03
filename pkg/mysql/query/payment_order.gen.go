@@ -29,7 +29,8 @@ func newPaymentOrder(db *gorm.DB) paymentOrder {
 	_paymentOrder.ALL = field.NewAsterisk(tableName)
 	_paymentOrder.PaymentOrderID = field.NewInt32(tableName, "payment_order_id")
 	_paymentOrder.OrderID = field.NewInt32(tableName, "order_id")
-	_paymentOrder.OrderNum = field.NewString(tableName, "order_num")
+	_paymentOrder.OrderType = field.NewInt32(tableName, "order_type")
+	_paymentOrder.PaymentOrderNo = field.NewString(tableName, "payment_order_no")
 	_paymentOrder.Amount = field.NewInt32(tableName, "amount")
 	_paymentOrder.NotifyID = field.NewString(tableName, "notify_id")
 	_paymentOrder.Resource = field.NewString(tableName, "resource")
@@ -50,7 +51,8 @@ type paymentOrder struct {
 	ALL            field.Asterisk
 	PaymentOrderID field.Int32
 	OrderID        field.Int32
-	OrderNum       field.String // 订单号
+	OrderType      field.Int32  // 订单类型，1｜开台订单支付，2｜充值支付
+	PaymentOrderNo field.String // 订单号
 	Amount         field.Int32
 	NotifyID       field.String // 微信通知id
 	Resource       field.String
@@ -87,7 +89,8 @@ func (p *paymentOrder) updateTableName(table string) *paymentOrder {
 	p.ALL = field.NewAsterisk(table)
 	p.PaymentOrderID = field.NewInt32(table, "payment_order_id")
 	p.OrderID = field.NewInt32(table, "order_id")
-	p.OrderNum = field.NewString(table, "order_num")
+	p.OrderType = field.NewInt32(table, "order_type")
+	p.PaymentOrderNo = field.NewString(table, "payment_order_no")
 	p.Amount = field.NewInt32(table, "amount")
 	p.NotifyID = field.NewString(table, "notify_id")
 	p.Resource = field.NewString(table, "resource")
@@ -120,10 +123,11 @@ func (p *paymentOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *paymentOrder) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 11)
+	p.fieldMap = make(map[string]field.Expr, 12)
 	p.fieldMap["payment_order_id"] = p.PaymentOrderID
 	p.fieldMap["order_id"] = p.OrderID
-	p.fieldMap["order_num"] = p.OrderNum
+	p.fieldMap["order_type"] = p.OrderType
+	p.fieldMap["payment_order_no"] = p.PaymentOrderNo
 	p.fieldMap["amount"] = p.Amount
 	p.fieldMap["notify_id"] = p.NotifyID
 	p.fieldMap["resource"] = p.Resource

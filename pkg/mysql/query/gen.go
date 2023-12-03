@@ -12,22 +12,23 @@ import (
 )
 
 var (
-	Q            = new(Query)
-	Admin        *admin
-	AdminRole    *adminRole
-	Node         *node
-	Order        *order
-	OrderLog     *orderLog
-	PaymentOrder *paymentOrder
-	RefundOrder  *refundOrder
-	Role         *role
-	RoleNode     *roleNode
-	Shop         *shop
-	Table        *table
-	Task         *task
-	TaskLog      *taskLog
-	Terminal     *terminal
-	User         *user
+	Q             = new(Query)
+	Admin         *admin
+	AdminRole     *adminRole
+	Node          *node
+	OrderLog      *orderLog
+	PaymentOrder  *paymentOrder
+	RechargeOrder *rechargeOrder
+	RefundOrder   *refundOrder
+	Role          *role
+	RoleNode      *roleNode
+	Shop          *shop
+	Table         *table
+	TableOrder    *tableOrder
+	Task          *task
+	TaskLog       *taskLog
+	Terminal      *terminal
+	User          *user
 )
 
 func SetDefault(db *gorm.DB) {
@@ -35,14 +36,15 @@ func SetDefault(db *gorm.DB) {
 	Admin = &Q.Admin
 	AdminRole = &Q.AdminRole
 	Node = &Q.Node
-	Order = &Q.Order
 	OrderLog = &Q.OrderLog
 	PaymentOrder = &Q.PaymentOrder
+	RechargeOrder = &Q.RechargeOrder
 	RefundOrder = &Q.RefundOrder
 	Role = &Q.Role
 	RoleNode = &Q.RoleNode
 	Shop = &Q.Shop
 	Table = &Q.Table
+	TableOrder = &Q.TableOrder
 	Task = &Q.Task
 	TaskLog = &Q.TaskLog
 	Terminal = &Q.Terminal
@@ -51,103 +53,108 @@ func SetDefault(db *gorm.DB) {
 
 func Use(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		Admin:        newAdmin(db),
-		AdminRole:    newAdminRole(db),
-		Node:         newNode(db),
-		Order:        newOrder(db),
-		OrderLog:     newOrderLog(db),
-		PaymentOrder: newPaymentOrder(db),
-		RefundOrder:  newRefundOrder(db),
-		Role:         newRole(db),
-		RoleNode:     newRoleNode(db),
-		Shop:         newShop(db),
-		Table:        newTable(db),
-		Task:         newTask(db),
-		TaskLog:      newTaskLog(db),
-		Terminal:     newTerminal(db),
-		User:         newUser(db),
+		db:            db,
+		Admin:         newAdmin(db),
+		AdminRole:     newAdminRole(db),
+		Node:          newNode(db),
+		OrderLog:      newOrderLog(db),
+		PaymentOrder:  newPaymentOrder(db),
+		RechargeOrder: newRechargeOrder(db),
+		RefundOrder:   newRefundOrder(db),
+		Role:          newRole(db),
+		RoleNode:      newRoleNode(db),
+		Shop:          newShop(db),
+		Table:         newTable(db),
+		TableOrder:    newTableOrder(db),
+		Task:          newTask(db),
+		TaskLog:       newTaskLog(db),
+		Terminal:      newTerminal(db),
+		User:          newUser(db),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Admin        admin
-	AdminRole    adminRole
-	Node         node
-	Order        order
-	OrderLog     orderLog
-	PaymentOrder paymentOrder
-	RefundOrder  refundOrder
-	Role         role
-	RoleNode     roleNode
-	Shop         shop
-	Table        table
-	Task         task
-	TaskLog      taskLog
-	Terminal     terminal
-	User         user
+	Admin         admin
+	AdminRole     adminRole
+	Node          node
+	OrderLog      orderLog
+	PaymentOrder  paymentOrder
+	RechargeOrder rechargeOrder
+	RefundOrder   refundOrder
+	Role          role
+	RoleNode      roleNode
+	Shop          shop
+	Table         table
+	TableOrder    tableOrder
+	Task          task
+	TaskLog       taskLog
+	Terminal      terminal
+	User          user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		Admin:        q.Admin.clone(db),
-		AdminRole:    q.AdminRole.clone(db),
-		Node:         q.Node.clone(db),
-		Order:        q.Order.clone(db),
-		OrderLog:     q.OrderLog.clone(db),
-		PaymentOrder: q.PaymentOrder.clone(db),
-		RefundOrder:  q.RefundOrder.clone(db),
-		Role:         q.Role.clone(db),
-		RoleNode:     q.RoleNode.clone(db),
-		Shop:         q.Shop.clone(db),
-		Table:        q.Table.clone(db),
-		Task:         q.Task.clone(db),
-		TaskLog:      q.TaskLog.clone(db),
-		Terminal:     q.Terminal.clone(db),
-		User:         q.User.clone(db),
+		db:            db,
+		Admin:         q.Admin.clone(db),
+		AdminRole:     q.AdminRole.clone(db),
+		Node:          q.Node.clone(db),
+		OrderLog:      q.OrderLog.clone(db),
+		PaymentOrder:  q.PaymentOrder.clone(db),
+		RechargeOrder: q.RechargeOrder.clone(db),
+		RefundOrder:   q.RefundOrder.clone(db),
+		Role:          q.Role.clone(db),
+		RoleNode:      q.RoleNode.clone(db),
+		Shop:          q.Shop.clone(db),
+		Table:         q.Table.clone(db),
+		TableOrder:    q.TableOrder.clone(db),
+		Task:          q.Task.clone(db),
+		TaskLog:       q.TaskLog.clone(db),
+		Terminal:      q.Terminal.clone(db),
+		User:          q.User.clone(db),
 	}
 }
 
 type queryCtx struct {
-	Admin        IAdminDo
-	AdminRole    IAdminRoleDo
-	Node         INodeDo
-	Order        IOrderDo
-	OrderLog     IOrderLogDo
-	PaymentOrder IPaymentOrderDo
-	RefundOrder  IRefundOrderDo
-	Role         IRoleDo
-	RoleNode     IRoleNodeDo
-	Shop         IShopDo
-	Table        ITableDo
-	Task         ITaskDo
-	TaskLog      ITaskLogDo
-	Terminal     ITerminalDo
-	User         IUserDo
+	Admin         IAdminDo
+	AdminRole     IAdminRoleDo
+	Node          INodeDo
+	OrderLog      IOrderLogDo
+	PaymentOrder  IPaymentOrderDo
+	RechargeOrder IRechargeOrderDo
+	RefundOrder   IRefundOrderDo
+	Role          IRoleDo
+	RoleNode      IRoleNodeDo
+	Shop          IShopDo
+	Table         ITableDo
+	TableOrder    ITableOrderDo
+	Task          ITaskDo
+	TaskLog       ITaskLogDo
+	Terminal      ITerminalDo
+	User          IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Admin:        q.Admin.WithContext(ctx),
-		AdminRole:    q.AdminRole.WithContext(ctx),
-		Node:         q.Node.WithContext(ctx),
-		Order:        q.Order.WithContext(ctx),
-		OrderLog:     q.OrderLog.WithContext(ctx),
-		PaymentOrder: q.PaymentOrder.WithContext(ctx),
-		RefundOrder:  q.RefundOrder.WithContext(ctx),
-		Role:         q.Role.WithContext(ctx),
-		RoleNode:     q.RoleNode.WithContext(ctx),
-		Shop:         q.Shop.WithContext(ctx),
-		Table:        q.Table.WithContext(ctx),
-		Task:         q.Task.WithContext(ctx),
-		TaskLog:      q.TaskLog.WithContext(ctx),
-		Terminal:     q.Terminal.WithContext(ctx),
-		User:         q.User.WithContext(ctx),
+		Admin:         q.Admin.WithContext(ctx),
+		AdminRole:     q.AdminRole.WithContext(ctx),
+		Node:          q.Node.WithContext(ctx),
+		OrderLog:      q.OrderLog.WithContext(ctx),
+		PaymentOrder:  q.PaymentOrder.WithContext(ctx),
+		RechargeOrder: q.RechargeOrder.WithContext(ctx),
+		RefundOrder:   q.RefundOrder.WithContext(ctx),
+		Role:          q.Role.WithContext(ctx),
+		RoleNode:      q.RoleNode.WithContext(ctx),
+		Shop:          q.Shop.WithContext(ctx),
+		Table:         q.Table.WithContext(ctx),
+		TableOrder:    q.TableOrder.WithContext(ctx),
+		Task:          q.Task.WithContext(ctx),
+		TaskLog:       q.TaskLog.WithContext(ctx),
+		Terminal:      q.Terminal.WithContext(ctx),
+		User:          q.User.WithContext(ctx),
 	}
 }
 

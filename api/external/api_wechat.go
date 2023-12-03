@@ -1,7 +1,8 @@
 package api
 
 import (
-	"billiards/pkg/wechat"
+	"billiards/pkg/config"
+	"billiards/pkg/tool"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,8 @@ func (*wechatApi) PayNotify(c *gin.Context) {
 
 func (*wechatApi) Refund(c *gin.Context) {
 
-	wechat.GetApp("client").GenQrcode("pages/shop/detail/shopDetail", "shop_id=1")
+	tool.Dump(config.GetConfig().RechargeAmount)
+	//wechat.GetApp("client").GenQrcode("pages/shop/detail/shopDetail", "shop_id=1")
 	//if err != nil {
 	//	return
 	//}

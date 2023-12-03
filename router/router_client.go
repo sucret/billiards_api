@@ -23,11 +23,15 @@ func setClientRoute(r *gin.Engine) {
 		clientRouter.GET("/table/detail", api.TableApi.Detail)
 		clientRouter.GET("/table/get-order", api.TableApi.GetOrder)
 
-		// 订单
-		clientRouter.POST("/order/create", api.OrderApi.Create)
-		clientRouter.GET("/order/pay-result", api.OrderApi.PayResult)
-		clientRouter.GET("/order/list", api.OrderApi.List)
-		clientRouter.GET("/order/detail", api.OrderApi.Detail)
-		clientRouter.GET("/order/terminate", api.OrderApi.Terminate)
+		// 开台订单
+		clientRouter.POST("/table/order/create", api.TableOrderApi.Create)
+		clientRouter.GET("/table/order/pay-result", api.TableOrderApi.PayResult)
+		clientRouter.GET("/table/order/list", api.TableOrderApi.List)
+		clientRouter.GET("/table/order/detail", api.TableOrderApi.Detail)
+		clientRouter.GET("/table/order/terminate", api.TableOrderApi.Terminate)
+
+		// 充值订单
+		clientRouter.GET("/recharge/order/create", api.RechargeOrderApi.Create)
+		clientRouter.GET("/recharge/order/pay-result", api.RechargeOrderApi.PayResult)
 	}
 }

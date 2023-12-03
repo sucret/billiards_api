@@ -58,7 +58,7 @@ func (p *paymentService) Refund(paymentOrder model.PaymentOrder, amount int32) (
 	}
 
 	resp, err := wechat.NewPayment().Refund(amount, paymentOrder.Amount, paymentOrder.TransactionID,
-		paymentOrder.OrderNum, refundOrder.RefundNum, "退款")
+		paymentOrder.PaymentOrderNo, refundOrder.RefundNum, "退款")
 
 	refundOrder.Status = int32(model.RefundStatusMapping[string(*resp.Status)])
 	refundOrder.WxRefundID = *resp.RefundId
@@ -69,7 +69,7 @@ func (p *paymentService) Refund(paymentOrder model.PaymentOrder, amount int32) (
 }
 
 // 给指定付款单退款
-func (p *paymentService) RefundOrder(order model.Order, amount int32) {
+func (p *paymentService) RefundOrder(order model.TableOrder, amount int32) {
 	for _, v := range order.PaymentOrderList {
 		// 付款金额如果大于退款金额，则退掉就结束
 		// 付款金额如果
@@ -93,7 +93,6 @@ func (p *paymentService) RefundOrder(order model.Order, amount int32) {
 		if err != nil {
 			return
 		}
-
 	}
 
 	if amount > 0 {
@@ -110,7 +109,7 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	}
 
 	paymentOrder := model.PaymentOrder{}
-	if err = p.db.Where("order_num = ?", res.OutTradeNo).First(&paymentOrder).Error; err != nil {
+	if err = p.db.Where("payment_order_no = ?", res.OutTradeNo).First(&paymentOrder).Error; err != nil {
 		log.GetLogger().Error("pay_error", zap.String("msg", "查询支付订单失败："+err.Error()))
 		return
 	}
@@ -127,7 +126,14 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 		return
 	}
 
-	_, err = OrderService.PaySuccess(paymentOrder.OrderNum)
+	if paymentOrder.OrderType == model.POTypeTable {
+		// 开台订单回调
+		_, err = TableOrderService.PaySuccess(paymentOrder.OrderID)
+	} else if paymentOrder.OrderType == model.POTypeRecharge {
+		// 充值订单回调
+		_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
+	}
+
 	if err != nil {
 		log.GetLogger().Error("pay_error", zap.String("msg", "更新订单失败："+err.Error()))
 		return err
@@ -137,21 +143,24 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 }
 
 // 创建预支付订单并生成预支付参数
-func (p *paymentService) MakePrepayOrder(order model.Order, openID, description, orderNum string, amount int32) (
+func (p *paymentService) MakePrepayOrder(userId, amount, orderType, orderId int32, description string) (
 	payment *jsapi.PrepayWithRequestPaymentResponse, err error) {
+
+	user, _ := UserService.GetByUserId(userId)
 
 	// 写入payment_order表
 	paymentOrder := model.PaymentOrder{
-		OrderNum: orderNum,
-		OrderID:  order.OrderID,
-		Amount:   amount,
+		PaymentOrderNo: tool.GenerateOrderNum(),
+		OrderID:        orderId,
+		Amount:         amount,
+		OrderType:      orderType,
 	}
 
 	if err = p.db.Create(&paymentOrder).Error; err != nil {
 		return
 	}
 
-	payment, err = wechat.NewPayment().GetPrepayBill(openID, description, orderNum, amount)
+	payment, err = wechat.NewPayment().GetPrepayBill(user.OpenID, description, paymentOrder.PaymentOrderNo, amount)
 	if err != nil {
 		return
 	}
