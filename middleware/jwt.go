@@ -4,6 +4,7 @@ import (
 	"billiards/pkg/config"
 	"billiards/response"
 	"billiards/service"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +17,7 @@ func JWTAuth(GuardName string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		fmt.Println("tokenStr", tokenStr)
 		tokenStr = tokenStr[len(service.TokenType)+1:]
 
 		jwtConfig := config.GetConfig().Jwt
