@@ -29,6 +29,8 @@ func (*userApi) Login(c *gin.Context) {
 			return
 		}
 
-		response.Success(c, tokenData)
+		resp := response.UserLogin{User: *user, TokenData: tokenData}
+
+		response.Success(c, resp)
 	}
 }

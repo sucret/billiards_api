@@ -27,7 +27,7 @@ var RechargeOrderService = &rechargeOrderService{
 	lock:  sync.Mutex{},
 }
 
-func (r *rechargeOrderService) PayResult(orderId, userId int32) (successful bool, err error) {
+func (r *rechargeOrderService) PayResult(orderId, userId int32) (resp response.RechargeResult, err error) {
 	order := model.RechargeOrder{}
 	if err = r.db.Where("order_id = ? AND user_id = ?", orderId, userId).
 		First(&order).Error; err != nil {
@@ -35,7 +35,10 @@ func (r *rechargeOrderService) PayResult(orderId, userId int32) (successful bool
 		return
 	}
 
-	successful = order.Status == model.RechargeOrderStatusPaid
+	resp.Succeed = order.Status == model.RechargeOrderStatusPaid
+
+	user, _ := UserService.GetByUserId(userId)
+	resp.Wallet = user.Wallet
 
 	return
 }
@@ -65,7 +68,7 @@ func (r *rechargeOrderService) Create(userId int32, rechargeAmount int) (
 
 	// 创建预付款单
 	// 生成预支付的参数
-	jsapiParam, err := PaymentService.MakePrepayOrder(
+	jsapiParam, err := PaymentService.MakeWechatPrepayOrder(
 		userId, resp.Order.Amount, model.POTypeRecharge, resp.Order.OrderID, "会员充值")
 	if err != nil {
 		return

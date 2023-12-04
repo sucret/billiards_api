@@ -11,7 +11,7 @@ type Node struct {
 	NodeID       int32  `gorm:"column:node_id;type:int(11);primaryKey;autoIncrement:true" json:"node_id"`
 	Title        string `gorm:"column:title;type:char(64);not null" json:"title"`                  // 名称
 	Name         string `gorm:"column:name;type:char(64);not null" json:"name"`                    // 页面名称
-	Type         int32  `gorm:"column:type;type:tinyint(4);not null" json:"type"`                  // 类型，1|菜单，2|页面，3|菜单&页面，4|接口
+	Type         int    `gorm:"column:type;type:tinyint(4);not null" json:"type"`                  // 类型，1|菜单，2|页面，3|菜单&页面，4|接口
 	Path         string `gorm:"column:path;type:char(64);not null" json:"path"`                    // 操作路径
 	Icon         string `gorm:"column:icon;type:char(64);not null" json:"icon"`                    // 图标
 	ParentNodeID int32  `gorm:"column:parent_node_id;type:int(11);not null" json:"parent_node_id"` // 上级节点ID

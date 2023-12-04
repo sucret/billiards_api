@@ -2,7 +2,7 @@ package request
 
 type ChangeTaskStatus struct {
 	TaskId int32 `form:"task_id" json:"task_id" binding:"required"`
-	Status int32 `form:"status" json:"status" binding:"required,oneof=1 2"`
+	Status int   `form:"status" json:"status" binding:"required,oneof=1 2"`
 }
 
 // 自定义错误信息
@@ -20,7 +20,7 @@ type SaveTask struct {
 	Spec       string `form:"spec" json:"spec" binding:"required"`
 	Command    string `form:"command" json:"command" binding:"required"`
 	ProcessNum int32  `form:"process_num" json:"process_num" binding:"required"`
-	Status     int32  `form:"status" json:"status" binding:"required,oneof=1 2"`
+	Status     int    `form:"status" json:"status" binding:"required,oneof=1 2"`
 }
 
 func (saveTask SaveTask) GetMessages() ValidatorMessages {

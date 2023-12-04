@@ -12,7 +12,7 @@ type Table struct {
 	Name         string     `gorm:"column:name;type:char(32);not null" json:"name"`        // 球桌名称
 	ShopID       int32      `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`   // 店铺id
 	Price        int32      `gorm:"column:price;type:int(11);not null" json:"price"`       // 单价
-	Status       int32      `gorm:"column:status;type:tinyint(4);not null" json:"status"`  // 状态，1｜开启，2｜关闭
+	Status       int        `gorm:"column:status;type:tinyint(4);not null" json:"status"`  // 状态，1｜开启，2｜关闭
 	Qrcode       string     `gorm:"column:qrcode;type:char(128);not null" json:"qrcode"`   // 开台二维码
 	ActivatedAt  Time       `gorm:"column:activated_at;type:datetime" json:"activated_at"` // 开台时间，结束之后清零
 	CreatedAt    Time       `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`

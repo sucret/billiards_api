@@ -9,12 +9,12 @@ const TableNameTerminal = "terminal"
 // Terminal mapped from table <terminal>
 type Terminal struct {
 	TerminalID int32  `gorm:"column:terminal_id;type:int(11);primaryKey;autoIncrement:true" json:"terminal_id"`
-	Type       int32  `gorm:"column:type;type:tinyint(4);not null" json:"type"`         // 类型，1｜灯光，2｜锁球器、3｜图像识别芯片，4｜店铺摄像头，5｜球桌摄像头
-	ShopID     int32  `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`      // 店铺id
-	TableID    int32  `gorm:"column:table_id;type:tinyint(4);not null" json:"table_id"` // 桌id
-	Name       string `gorm:"column:name;type:varchar(64);not null" json:"name"`        // 设备名称
-	Status     int32  `gorm:"column:status;type:tinyint(4);not null" json:"status"`     // 状态，1｜开启，2｜关闭
-	URL        string `gorm:"column:url;type:char(128);not null" json:"url"`            // 控制地址
+	Type       int    `gorm:"column:type;type:tinyint(4);not null" json:"type"`     // 类型，1｜灯光，2｜锁球器、3｜图像识别芯片，4｜店铺摄像头，5｜球桌摄像头
+	ShopID     int32  `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`  // 店铺id
+	TableID    int32  `gorm:"column:table_id;type:int(4);not null" json:"table_id"` // 桌id
+	Name       string `gorm:"column:name;type:varchar(64);not null" json:"name"`    // 设备名称
+	Status     int    `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 状态，1｜开启，2｜关闭
+	URL        string `gorm:"column:url;type:char(128);not null" json:"url"`        // 控制地址
 	CreatedAt  Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	DeletedAt  Time   `gorm:"column:deleted_at;type:datetime" json:"deleted_at"` // 删除时间
 }

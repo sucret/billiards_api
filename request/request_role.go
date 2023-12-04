@@ -3,7 +3,7 @@ package request
 type SaveRole struct {
 	RoleID     int32   `form:"role_id" json:"role_id"`
 	Name       string  `form:"name" json:"name" binding:"required"`
-	Status     int32   `form:"status" json:"status"`
+	Status     int     `form:"status" json:"status"`
 	NodeIdList []int32 `form:"node_ids" json:"node_ids"`
 }
 

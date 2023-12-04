@@ -61,12 +61,12 @@ func (t *tableService) Save(form request.SaveTable) (table model.Table, err erro
 	return
 }
 
-func (t *tableService) Disable(tableId int32) (table model.Table, err error) {
+func (t *tableService) Disable(tx *gorm.DB, tableId int32) (table model.Table, err error) {
 	// 操作设备加锁
-	t.lock.Lock()
-	defer t.lock.Unlock()
-
-	tx := t.db.Begin()
+	//t.lock.Lock()
+	//defer t.lock.Unlock()
+	//
+	//tx := t.db.Begin()
 
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
 		Preload("TerminalList").
@@ -74,7 +74,6 @@ func (t *tableService) Disable(tableId int32) (table model.Table, err error) {
 		First(&table).Error; err != nil {
 
 		err = errors.New("球桌不存在")
-		tx.Rollback()
 		return
 	}
 
@@ -96,11 +95,9 @@ func (t *tableService) Disable(tableId int32) (table model.Table, err error) {
 	table.Status = model.TableStatusClose
 	if err = tx.Save(table).Error; err != nil {
 		err = errors.New("关闭球桌失败")
-		tx.Rollback()
 		return
 	}
 
-	tx.Commit()
 	return
 }
 

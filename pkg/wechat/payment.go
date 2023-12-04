@@ -104,7 +104,6 @@ func (p *Payment) Refund(amount, total int32, transactionId, outTradeNo, outRefu
 	tool.Dump(resp)
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Println(3234)
 		log.GetLogger().Error("refund_error", zap.String("msg", err.Error()))
 		return
 	}

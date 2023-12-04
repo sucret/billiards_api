@@ -28,11 +28,11 @@ func newTerminal(db *gorm.DB) terminal {
 	tableName := _terminal.terminalDo.TableName()
 	_terminal.ALL = field.NewAsterisk(tableName)
 	_terminal.TerminalID = field.NewInt32(tableName, "terminal_id")
-	_terminal.Type = field.NewInt32(tableName, "type")
+	_terminal.Type = field.NewInt(tableName, "type")
 	_terminal.ShopID = field.NewInt32(tableName, "shop_id")
 	_terminal.TableID = field.NewInt32(tableName, "table_id")
 	_terminal.Name = field.NewString(tableName, "name")
-	_terminal.Status = field.NewInt32(tableName, "status")
+	_terminal.Status = field.NewInt(tableName, "status")
 	_terminal.URL = field.NewString(tableName, "url")
 	_terminal.CreatedAt = field.NewField(tableName, "created_at")
 	_terminal.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -47,11 +47,11 @@ type terminal struct {
 
 	ALL        field.Asterisk
 	TerminalID field.Int32
-	Type       field.Int32  // 类型，1｜灯光，2｜锁球器、3｜图像识别芯片，4｜店铺摄像头，5｜球桌摄像头
+	Type       field.Int    // 类型，1｜灯光，2｜锁球器、3｜图像识别芯片，4｜店铺摄像头，5｜球桌摄像头
 	ShopID     field.Int32  // 店铺id
 	TableID    field.Int32  // 桌id
 	Name       field.String // 设备名称
-	Status     field.Int32  // 状态，1｜开启，2｜关闭
+	Status     field.Int    // 状态，1｜开启，2｜关闭
 	URL        field.String // 控制地址
 	CreatedAt  field.Field
 	DeletedAt  field.Field // 删除时间
@@ -72,11 +72,11 @@ func (t terminal) As(alias string) *terminal {
 func (t *terminal) updateTableName(table string) *terminal {
 	t.ALL = field.NewAsterisk(table)
 	t.TerminalID = field.NewInt32(table, "terminal_id")
-	t.Type = field.NewInt32(table, "type")
+	t.Type = field.NewInt(table, "type")
 	t.ShopID = field.NewInt32(table, "shop_id")
 	t.TableID = field.NewInt32(table, "table_id")
 	t.Name = field.NewString(table, "name")
-	t.Status = field.NewInt32(table, "status")
+	t.Status = field.NewInt(table, "status")
 	t.URL = field.NewString(table, "url")
 	t.CreatedAt = field.NewField(table, "created_at")
 	t.DeletedAt = field.NewField(table, "deleted_at")

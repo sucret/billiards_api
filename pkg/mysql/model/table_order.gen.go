@@ -10,7 +10,7 @@ const TableNameTableOrder = "table_order"
 type TableOrder struct {
 	OrderID          int32          `gorm:"column:order_id;type:int(11);primaryKey;autoIncrement:true" json:"order_id"`
 	UserID           int32          `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
-	Status           int32          `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
+	Status           int            `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID           int32          `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`
 	TableID          int32          `gorm:"column:table_id;type:int(11);not null" json:"table_id"`
 	Amount           int32          `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 金额

@@ -65,11 +65,15 @@ func (o *tableOrderService) Terminate(userId, orderId int) (order *response.Orde
 
 	// 关闭球桌
 	// todo
-	_, err = TableService.Disable(order.TableID)
+	_, err = TableService.Disable(tx, order.TableID)
 	if err != nil {
 		tx.Rollback()
 		return
 	}
+
+	//tool.Dump(order)
+	//tx.Rollback()
+	//return
 
 	// 修改订单状态
 	order.Status = model.OrderStatusFinised
@@ -108,10 +112,10 @@ func (o *tableOrderService) refund(order model.TableOrder) {
 }
 
 func (o *tableOrderService) Detail(userId, orderId int) (order *response.OrderDetail, err error) {
-	if err := o.db.Preload("Table").
+	if err = o.db.Preload("Table").
 		Preload("Table.Shop").
 		Preload("PaymentOrderList", func(db *gorm.DB) *gorm.DB {
-			return db.Select("order_id,order_num,amount").Where("trade_state = ?", "SUCCESS")
+			return db.Select("order_id,amount").Where("status = ?", model.PMOStatusSuccess)
 		}).
 		Where("user_id = ? AND order_id = ?", userId, orderId).
 		First(&order).Error; err != nil {
@@ -119,11 +123,6 @@ func (o *tableOrderService) Detail(userId, orderId int) (order *response.OrderDe
 	}
 
 	o.formatClientOrder(order)
-
-	//tool.Dump(order)
-
-	a := time.Now().Sub(time.Time(order.StartedAt)).Minutes()
-	fmt.Println(a)
 
 	return
 }
@@ -151,7 +150,7 @@ func (o *tableOrderService) formatClientOrder(order *response.OrderDetail) {
 		order.RemainMinutes = 0
 	}
 
-	tool.Dump(order)
+	//tool.Dump(order)
 }
 
 func (o *tableOrderService) List(userId int, orderType int) (list []model.TableOrder, err error) {
@@ -227,9 +226,6 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 	order := model.TableOrder{}
 	tx := o.db.Begin()
 
-	// 获取用户信息
-	//user, _ := UserService.GetByUserId(userId)
-
 	// 先查询出球桌，判断一下是否可以开台
 	table := model.Table{}
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
@@ -270,42 +266,78 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 		return
 	}
 
+	wxPayAmount := table.Shop.Deposit
+	walletPayAmount := int32(0)
+
+	// 获取用户信息
+	user, _ := UserService.GetByUserId(userId)
+	// 判断用户余额是否够支付，如果够，则不用微信支付
+	if user.Wallet >= table.Shop.Deposit {
+		wxPayAmount = 0
+		walletPayAmount = table.Shop.Deposit
+	} else {
+		wxPayAmount = table.Shop.Deposit - user.Wallet
+		walletPayAmount = user.Wallet
+	}
+
+	//tool.Dump(user)
+	// 生成余额支付订单
+	if walletPayAmount > 0 {
+		payment, err := PaymentService.MakeWalletOrder(
+			&user, walletPayAmount, model.POTypeTable, order.OrderID, tx)
+
+		if err != nil {
+			fmt.Println(payment, err)
+			log.GetLogger().Error("gen_payment_order_err", zap.String("msg", err.Error()))
+			tx.Rollback()
+			return response.TableOrderPrePayParam{}, err
+		}
+	}
+
 	// 生成预支付的参数
-	payment, err := PaymentService.MakePrepayOrder(
-		userId, table.Shop.Deposit, model.POTypeTable, order.OrderID, table.Name)
+	if wxPayAmount > 0 {
+		payment, err := PaymentService.MakeWechatPrepayOrder(
+			userId, wxPayAmount, model.POTypeTable, order.OrderID, table.Name)
+		if err != nil {
+			log.GetLogger().Error("gen_payment_order_err", zap.String("msg", err.Error()))
+			tx.Rollback()
+			return response.TableOrderPrePayParam{}, err
+		}
+		resp.NeedWxPay = true
+		resp.JsApi = payment
+	}
+
+	// 全部用钱包支付的话，订单直接改为支付成功
+	if wxPayAmount == 0 {
+		_, err = TableOrderService.PaySuccess(order.OrderID, tx)
+	}
 
 	resp.Order = &order
-	resp.JsApi = payment
 
 	tx.Commit()
 
 	return
 }
 
-func (o *tableOrderService) PaySuccess(orderId int32) (order model.TableOrder, err error) {
-	o.lock.Lock()
-	defer o.lock.Unlock()
-
-	tx := o.db.Begin()
-	err = tx.Where("order_id = ? AND status = ?", orderId, model.OrderStatusDefault).
+func (o *tableOrderService) PaySuccess(orderId int32, db *gorm.DB) (order model.TableOrder, err error) {
+	err = db.Where("order_id = ? AND status = ?", orderId, model.OrderStatusDefault).
 		First(&order).Error
+
 	if err != nil {
 		log.GetLogger().Error("pay_notify",
 			zap.String("err_msg", "没有查到订单或者订单支付状态已经完成"),
 			zap.Int32("order_id", orderId))
-		tx.Rollback()
 		return
 	}
 
 	order.Status = model.OrderStatusPaySuccess
 	order.StartedAt = model.Time(time.Now())
 
-	if err = tx.Save(&order).Error; err != nil {
+	if err = db.Save(&order).Error; err != nil {
 		log.GetLogger().Error("pay_notify",
 			zap.String("msg", "更新订单状态失败"),
 			zap.String("err_msg", err.Error()),
 			zap.Int32("order_id", orderId))
-		tx.Rollback()
 	}
 
 	// 开台
@@ -315,12 +347,10 @@ func (o *tableOrderService) PaySuccess(orderId int32) (order model.TableOrder, e
 			zap.String("msg", "开台失败"),
 			zap.Any("table", table),
 			zap.Int32("order_id", orderId))
-		tx.Rollback()
 
 		return model.TableOrder{}, err
 	}
 
-	tx.Commit()
 	return
 }
 
@@ -336,7 +366,6 @@ func (o *tableOrderService) settlement(order *model.TableOrder) {
 	// 计算
 	minutes := time.Time(order.TerminatedAt).Sub(time.Time(order.StartedAt)).Minutes()
 
-	fmt.Println("minutes", minutes)
 	// 有优惠券的话，先减掉优惠券的时间
 
 	order.Amount = order.Table.Price / 60 * int32(minutes)

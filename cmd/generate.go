@@ -95,6 +95,7 @@ func generateTable() {
 	dataMap := map[string]func(detailType string) (dataType string){
 		"timestamp": func(detailType string) (dataType string) { return "Time" },
 		"datetime":  func(detailType string) (dataType string) { return "Time" },
+		"tinyint":   func(detailType string) (dataType string) { return "int" },
 	}
 
 	g.WithDataTypeMap(dataMap)

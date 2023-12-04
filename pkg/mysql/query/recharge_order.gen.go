@@ -29,7 +29,7 @@ func newRechargeOrder(db *gorm.DB) rechargeOrder {
 	_rechargeOrder.ALL = field.NewAsterisk(tableName)
 	_rechargeOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_rechargeOrder.UserID = field.NewInt32(tableName, "user_id")
-	_rechargeOrder.Status = field.NewInt32(tableName, "status")
+	_rechargeOrder.Status = field.NewInt(tableName, "status")
 	_rechargeOrder.Amount = field.NewInt32(tableName, "amount")
 	_rechargeOrder.BundledAmount = field.NewInt32(tableName, "bundled_amount")
 	_rechargeOrder.CreatedAt = field.NewField(tableName, "created_at")
@@ -46,7 +46,7 @@ type rechargeOrder struct {
 	ALL           field.Asterisk
 	OrderID       field.Int32
 	UserID        field.Int32
-	Status        field.Int32 // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
+	Status        field.Int   // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
 	Amount        field.Int32 // 实际支付金额
 	BundledAmount field.Int32 // 赠送金额
 	CreatedAt     field.Field
@@ -69,7 +69,7 @@ func (r *rechargeOrder) updateTableName(table string) *rechargeOrder {
 	r.ALL = field.NewAsterisk(table)
 	r.OrderID = field.NewInt32(table, "order_id")
 	r.UserID = field.NewInt32(table, "user_id")
-	r.Status = field.NewInt32(table, "status")
+	r.Status = field.NewInt(table, "status")
 	r.Amount = field.NewInt32(table, "amount")
 	r.BundledAmount = field.NewInt32(table, "bundled_amount")
 	r.CreatedAt = field.NewField(table, "created_at")

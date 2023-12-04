@@ -6,7 +6,7 @@ type SaveNode struct {
 	Name         string `form:"name" json:"name"`
 	ParentNodeId int32  `form:"parent_node_id" json:"parent_node_id"`
 	Path         string `form:"path" json:"path"`
-	Type         int32  `form:"type" json:"type"`
+	Type         int    `form:"type" json:"type"`
 	Icon         string `form:"icon" json:"icon"`
 	Redirect     string `form:"redirect" json:"redirect"`
 	Component    string `form:"component" json:"component"`

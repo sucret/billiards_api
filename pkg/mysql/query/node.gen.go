@@ -30,7 +30,7 @@ func newNode(db *gorm.DB) node {
 	_node.NodeID = field.NewInt32(tableName, "node_id")
 	_node.Title = field.NewString(tableName, "title")
 	_node.Name = field.NewString(tableName, "name")
-	_node.Type = field.NewInt32(tableName, "type")
+	_node.Type = field.NewInt(tableName, "type")
 	_node.Path = field.NewString(tableName, "path")
 	_node.Icon = field.NewString(tableName, "icon")
 	_node.ParentNodeID = field.NewInt32(tableName, "parent_node_id")
@@ -50,7 +50,7 @@ type node struct {
 	NodeID       field.Int32
 	Title        field.String // 名称
 	Name         field.String // 页面名称
-	Type         field.Int32  // 类型，1|菜单，2|页面，3|菜单&页面，4|接口
+	Type         field.Int    // 类型，1|菜单，2|页面，3|菜单&页面，4|接口
 	Path         field.String // 操作路径
 	Icon         field.String // 图标
 	ParentNodeID field.Int32  // 上级节点ID
@@ -76,7 +76,7 @@ func (n *node) updateTableName(table string) *node {
 	n.NodeID = field.NewInt32(table, "node_id")
 	n.Title = field.NewString(table, "title")
 	n.Name = field.NewString(table, "name")
-	n.Type = field.NewInt32(table, "type")
+	n.Type = field.NewInt(table, "type")
 	n.Path = field.NewString(table, "path")
 	n.Icon = field.NewString(table, "icon")
 	n.ParentNodeID = field.NewInt32(table, "parent_node_id")

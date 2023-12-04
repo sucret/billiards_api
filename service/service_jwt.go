@@ -3,6 +3,7 @@ package service
 import (
 	"billiards/pkg/config"
 	"billiards/pkg/mysql"
+	"billiards/response"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -34,14 +35,8 @@ const (
 	AppBusinessName = "business"
 )
 
-type TokenOutPut struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	TokenType   string `json:"token_type"`
-}
-
 // CreateToken 生成 Token
-func (*jwtService) CreateToken(GuardName string, user JwtUser) (tokenData TokenOutPut, token *jwt.Token, err error) {
+func (*jwtService) CreateToken(GuardName string, user JwtUser) (tokenData response.TokenOutPut, token *jwt.Token, err error) {
 
 	jwtConfig := config.GetConfig().Jwt
 
@@ -59,10 +54,10 @@ func (*jwtService) CreateToken(GuardName string, user JwtUser) (tokenData TokenO
 
 	tokenStr, err := token.SignedString([]byte(jwtConfig.Secret))
 
-	tokenData = TokenOutPut{
-		tokenStr,
-		int(jwtConfig.JwtTtl),
-		TokenType,
+	tokenData = response.TokenOutPut{
+		AccessToken: tokenStr,
+		ExpiresIn:   int(jwtConfig.JwtTtl),
+		TokenType:   TokenType,
 	}
 	return
 }

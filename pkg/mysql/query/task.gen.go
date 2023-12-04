@@ -33,14 +33,14 @@ func newTask(db *gorm.DB) task {
 	_task.Command = field.NewString(tableName, "command")
 	_task.ProcessNum = field.NewInt32(tableName, "process_num")
 	_task.Timeout = field.NewInt32(tableName, "timeout")
-	_task.RetryTimes = field.NewInt32(tableName, "retry_times")
+	_task.RetryTimes = field.NewInt(tableName, "retry_times")
 	_task.RetryInterval = field.NewInt32(tableName, "retry_interval")
-	_task.NotifyStatus = field.NewInt32(tableName, "notify_status")
-	_task.NotifyType = field.NewInt32(tableName, "notify_type")
+	_task.NotifyStatus = field.NewInt(tableName, "notify_status")
+	_task.NotifyType = field.NewInt(tableName, "notify_type")
 	_task.NotifyReceiverEmail = field.NewString(tableName, "notify_receiver_email")
 	_task.NotifyKeyword = field.NewString(tableName, "notify_keyword")
 	_task.Remark = field.NewString(tableName, "remark")
-	_task.Status = field.NewInt32(tableName, "status")
+	_task.Status = field.NewInt(tableName, "status")
 	_task.CreatedAt = field.NewField(tableName, "created_at")
 	_task.UpdatedAt = field.NewField(tableName, "updated_at")
 
@@ -59,14 +59,14 @@ type task struct {
 	Command             field.String // 执行命令
 	ProcessNum          field.Int32  // 进程数（单机）
 	Timeout             field.Int32  // 超时时间(单位:秒)
-	RetryTimes          field.Int32  // 重试次数
+	RetryTimes          field.Int    // 重试次数
 	RetryInterval       field.Int32  // 重试间隔(单位:秒)
-	NotifyStatus        field.Int32  // 执行结束是否通知 1:不通知 2:失败通知 3:结束通知 4:结果关键字匹配通知
-	NotifyType          field.Int32  // 通知类型 1:邮件 2:webhook
+	NotifyStatus        field.Int    // 执行结束是否通知 1:不通知 2:失败通知 3:结束通知 4:结果关键字匹配通知
+	NotifyType          field.Int    // 通知类型 1:邮件 2:webhook
 	NotifyReceiverEmail field.String // 通知者邮箱地址(多个用,分割)
 	NotifyKeyword       field.String // 通知匹配关键字(多个用,分割)
 	Remark              field.String // 备注
-	Status              field.Int32  // 状态1:启用  2:停用
+	Status              field.Int    // 状态1:启用  2:停用
 	CreatedAt           field.Field  // 创建时间
 	UpdatedAt           field.Field  // 更新时间
 
@@ -91,14 +91,14 @@ func (t *task) updateTableName(table string) *task {
 	t.Command = field.NewString(table, "command")
 	t.ProcessNum = field.NewInt32(table, "process_num")
 	t.Timeout = field.NewInt32(table, "timeout")
-	t.RetryTimes = field.NewInt32(table, "retry_times")
+	t.RetryTimes = field.NewInt(table, "retry_times")
 	t.RetryInterval = field.NewInt32(table, "retry_interval")
-	t.NotifyStatus = field.NewInt32(table, "notify_status")
-	t.NotifyType = field.NewInt32(table, "notify_type")
+	t.NotifyStatus = field.NewInt(table, "notify_status")
+	t.NotifyType = field.NewInt(table, "notify_type")
 	t.NotifyReceiverEmail = field.NewString(table, "notify_receiver_email")
 	t.NotifyKeyword = field.NewString(table, "notify_keyword")
 	t.Remark = field.NewString(table, "remark")
-	t.Status = field.NewInt32(table, "status")
+	t.Status = field.NewInt(table, "status")
 	t.CreatedAt = field.NewField(table, "created_at")
 	t.UpdatedAt = field.NewField(table, "updated_at")
 

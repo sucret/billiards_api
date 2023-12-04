@@ -25,20 +25,8 @@ var PaymentService = &paymentService{
 	redis: redis_.GetRedis(),
 }
 
-func (p *paymentService) Tt() {
-	paymentOrder := model.PaymentOrder{}
-	p.db.Where("payment_order_id = ?", 2).First(&paymentOrder)
-
-	refundOrder, err := p.Refund(paymentOrder, 10)
-	if err != nil {
-		return
-	}
-
-	tool.Dump(refundOrder)
-}
-
 // 给指定付款单退款
-func (p *paymentService) Refund(paymentOrder model.PaymentOrder, amount int32) (
+func (p *paymentService) RefundWxPay(paymentOrder model.PaymentOrder, amount int32) (
 	refundOrder model.RefundOrder, err error) {
 	// 1、创建退款单
 	//Amount, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", amount/100), 64)
@@ -60,9 +48,35 @@ func (p *paymentService) Refund(paymentOrder model.PaymentOrder, amount int32) (
 	resp, err := wechat.NewPayment().Refund(amount, paymentOrder.Amount, paymentOrder.TransactionID,
 		paymentOrder.PaymentOrderNo, refundOrder.RefundNum, "退款")
 
-	refundOrder.Status = int32(model.RefundStatusMapping[string(*resp.Status)])
+	refundOrder.Status = model.RefundStatusMapping[string(*resp.Status)]
 	refundOrder.WxRefundID = *resp.RefundId
 
+	err = p.db.Create(&refundOrder).Error
+
+	return
+}
+
+func (p *paymentService) RefundWalletPay(paymentOrder model.PaymentOrder, userId, amount int32) (
+	refundOrder model.RefundOrder, err error) {
+	// 获取用户信息
+	user := model.User{}
+	p.db.Where("user_id = ?", userId).First(&user)
+
+	// 更新用户余额
+	user.Wallet = user.Wallet + amount
+	p.db.Save(&user)
+
+	refundOrder = model.RefundOrder{
+		OrderID:        paymentOrder.OrderID,
+		PaymentOrderID: paymentOrder.PaymentOrderID,
+		Amount:         amount,
+		Status:         model.RefundStatusMapping["SUCCESS"],
+		//Status:         int32(model.RefundStatusMapping[string(*resp.Status)]),
+		RefundNum: tool.GenerateOrderNum(),
+		//WxRefundID:     *resp.RefundId,
+	}
+
+	// 写入记录
 	err = p.db.Create(&refundOrder).Error
 
 	return
@@ -89,9 +103,18 @@ func (p *paymentService) RefundOrder(order model.TableOrder, amount int32) {
 		}
 
 		// 退款
-		_, err := p.Refund(v, refundAmount)
-		if err != nil {
-			return
+		if v.PayMode == model.PMOModeWallet {
+			// 退还到钱包
+			_, err := p.RefundWalletPay(v, order.UserID, refundAmount)
+			if err != nil {
+				return
+			}
+		} else {
+			// 微信支付的原路退回
+			_, err := p.RefundWxPay(v, refundAmount)
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -128,10 +151,11 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 
 	if paymentOrder.OrderType == model.POTypeTable {
 		// 开台订单回调
-		_, err = TableOrderService.PaySuccess(paymentOrder.OrderID)
+		_, err = TableOrderService.PaySuccess(paymentOrder.OrderID, p.db)
 	} else if paymentOrder.OrderType == model.POTypeRecharge {
 		// 充值订单回调
 		_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
+		fmt.Println(err)
 	}
 
 	if err != nil {
@@ -142,8 +166,32 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	return
 }
 
+//创建余额支付订单
+func (p *paymentService) MakeWalletOrder(user *model.User, amount int32, orderType int, orderId int32, db *gorm.DB) (order model.PaymentOrder, err error) {
+	order = model.PaymentOrder{
+		PaymentOrderNo: tool.GenerateOrderNum(),
+		OrderID:        orderId,
+		Amount:         amount,
+		OrderType:      orderType,
+		PayMode:        model.PMOModeWallet,
+		Status:         model.PMOStatusSuccess,
+	}
+
+	if err = db.Create(&order).Error; err != nil {
+		return
+	}
+
+	// 扣除余额
+	user.Wallet = user.Wallet - amount
+	if err = db.Save(&user).Error; err != nil {
+		return
+	}
+
+	return
+}
+
 // 创建预支付订单并生成预支付参数
-func (p *paymentService) MakePrepayOrder(userId, amount, orderType, orderId int32, description string) (
+func (p *paymentService) MakeWechatPrepayOrder(userId, amount int32, orderType int, orderId int32, description string) (
 	payment *jsapi.PrepayWithRequestPaymentResponse, err error) {
 
 	user, _ := UserService.GetByUserId(userId)

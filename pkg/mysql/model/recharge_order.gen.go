@@ -10,7 +10,7 @@ const TableNameRechargeOrder = "recharge_order"
 type RechargeOrder struct {
 	OrderID          int32        `gorm:"column:order_id;type:int(11);primaryKey;autoIncrement:true" json:"order_id"`
 	UserID           int32        `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
-	Status           int32        `gorm:"column:status;type:tinyint(4);not null" json:"status"`              // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
+	Status           int          `gorm:"column:status;type:tinyint(4);not null" json:"status"`              // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
 	Amount           int32        `gorm:"column:amount;type:int(11);not null" json:"amount"`                 // 实际支付金额
 	BundledAmount    int32        `gorm:"column:bundled_amount;type:int(11);not null" json:"bundled_amount"` // 赠送金额
 	CreatedAt        Time         `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`

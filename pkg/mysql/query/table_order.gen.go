@@ -29,7 +29,7 @@ func newTableOrder(db *gorm.DB) tableOrder {
 	_tableOrder.ALL = field.NewAsterisk(tableName)
 	_tableOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_tableOrder.UserID = field.NewInt32(tableName, "user_id")
-	_tableOrder.Status = field.NewInt32(tableName, "status")
+	_tableOrder.Status = field.NewInt(tableName, "status")
 	_tableOrder.ShopID = field.NewInt32(tableName, "shop_id")
 	_tableOrder.TableID = field.NewInt32(tableName, "table_id")
 	_tableOrder.Amount = field.NewInt32(tableName, "amount")
@@ -50,7 +50,7 @@ type tableOrder struct {
 	ALL          field.Asterisk
 	OrderID      field.Int32
 	UserID       field.Int32
-	Status       field.Int32 // 订单状态，1｜待支付，2｜支付完成，3｜已退款
+	Status       field.Int // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID       field.Int32
 	TableID      field.Int32
 	Amount       field.Int32 // 金额
@@ -77,7 +77,7 @@ func (t *tableOrder) updateTableName(table string) *tableOrder {
 	t.ALL = field.NewAsterisk(table)
 	t.OrderID = field.NewInt32(table, "order_id")
 	t.UserID = field.NewInt32(table, "user_id")
-	t.Status = field.NewInt32(table, "status")
+	t.Status = field.NewInt(table, "status")
 	t.ShopID = field.NewInt32(table, "shop_id")
 	t.TableID = field.NewInt32(table, "table_id")
 	t.Amount = field.NewInt32(table, "amount")

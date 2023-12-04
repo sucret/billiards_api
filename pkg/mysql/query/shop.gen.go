@@ -29,7 +29,7 @@ func newShop(db *gorm.DB) shop {
 	_shop.ALL = field.NewAsterisk(tableName)
 	_shop.ShopID = field.NewInt32(tableName, "shop_id")
 	_shop.Name = field.NewString(tableName, "name")
-	_shop.Status = field.NewInt32(tableName, "status")
+	_shop.Status = field.NewInt(tableName, "status")
 	_shop.Deposit = field.NewInt32(tableName, "deposit")
 	_shop.Address = field.NewString(tableName, "address")
 	_shop.Longitude = field.NewFloat64(tableName, "longitude")
@@ -47,7 +47,7 @@ type shop struct {
 	ALL       field.Asterisk
 	ShopID    field.Int32
 	Name      field.String  // 门店名称
-	Status    field.Int32   // 门店状态，1｜开启，2｜关闭
+	Status    field.Int     // 门店状态，1｜开启，2｜关闭
 	Deposit   field.Int32   // 押金
 	Address   field.String  // 店铺地址
 	Longitude field.Float64 // 经度
@@ -71,7 +71,7 @@ func (s *shop) updateTableName(table string) *shop {
 	s.ALL = field.NewAsterisk(table)
 	s.ShopID = field.NewInt32(table, "shop_id")
 	s.Name = field.NewString(table, "name")
-	s.Status = field.NewInt32(table, "status")
+	s.Status = field.NewInt(table, "status")
 	s.Deposit = field.NewInt32(table, "deposit")
 	s.Address = field.NewString(table, "address")
 	s.Longitude = field.NewFloat64(table, "longitude")

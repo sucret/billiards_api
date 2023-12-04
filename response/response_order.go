@@ -10,3 +10,8 @@ type OrderDetail struct {
 	RemainMinutes int32 `json:"remain_minutes"`
 	TotalMinutes  int32 `json:"total_minutes"`
 }
+
+type RechargeResult struct {
+	Succeed bool  `json:"succeed"`
+	Wallet  int32 `json:"wallet"`
+}

@@ -29,7 +29,7 @@ func newOrderLog(db *gorm.DB) orderLog {
 	_orderLog.ALL = field.NewAsterisk(tableName)
 	_orderLog.OrderLogID = field.NewInt32(tableName, "order_log_id")
 	_orderLog.OrderID = field.NewInt32(tableName, "order_id")
-	_orderLog.Type = field.NewInt32(tableName, "type")
+	_orderLog.Type = field.NewInt(tableName, "type")
 	_orderLog.Remark = field.NewString(tableName, "remark")
 	_orderLog.CreatedAt = field.NewField(tableName, "created_at")
 
@@ -44,7 +44,7 @@ type orderLog struct {
 	ALL        field.Asterisk
 	OrderLogID field.Int32
 	OrderID    field.Int32
-	Type       field.Int32 // 日志类型，1｜发起订单，2｜发起支付，3｜支付完成，4｜取消订单，5｜续费，6｜发起关闭订单，7｜关闭订单失败，8｜关闭订单成功
+	Type       field.Int // 日志类型，1｜发起订单，2｜发起支付，3｜支付完成，4｜取消订单，5｜续费，6｜发起关闭订单，7｜关闭订单失败，8｜关闭订单成功
 	Remark     field.String
 	CreatedAt  field.Field
 
@@ -65,7 +65,7 @@ func (o *orderLog) updateTableName(table string) *orderLog {
 	o.ALL = field.NewAsterisk(table)
 	o.OrderLogID = field.NewInt32(table, "order_log_id")
 	o.OrderID = field.NewInt32(table, "order_id")
-	o.Type = field.NewInt32(table, "type")
+	o.Type = field.NewInt(table, "type")
 	o.Remark = field.NewString(table, "remark")
 	o.CreatedAt = field.NewField(table, "created_at")
 

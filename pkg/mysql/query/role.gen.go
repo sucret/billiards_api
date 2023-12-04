@@ -29,7 +29,7 @@ func newRole(db *gorm.DB) role {
 	_role.ALL = field.NewAsterisk(tableName)
 	_role.RoleID = field.NewInt32(tableName, "role_id")
 	_role.Name = field.NewString(tableName, "name")
-	_role.Status = field.NewInt32(tableName, "status")
+	_role.Status = field.NewInt(tableName, "status")
 	_role.CreatedAt = field.NewField(tableName, "created_at")
 
 	_role.fillFieldMap()
@@ -43,7 +43,7 @@ type role struct {
 	ALL       field.Asterisk
 	RoleID    field.Int32
 	Name      field.String // 角色名称
-	Status    field.Int32  // 角色状态,1|正常,2|禁用
+	Status    field.Int    // 角色状态,1|正常,2|禁用
 	CreatedAt field.Field  // 创建时间
 
 	fieldMap map[string]field.Expr
@@ -63,7 +63,7 @@ func (r *role) updateTableName(table string) *role {
 	r.ALL = field.NewAsterisk(table)
 	r.RoleID = field.NewInt32(table, "role_id")
 	r.Name = field.NewString(table, "name")
-	r.Status = field.NewInt32(table, "status")
+	r.Status = field.NewInt(table, "status")
 	r.CreatedAt = field.NewField(table, "created_at")
 
 	r.fillFieldMap()

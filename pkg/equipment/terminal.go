@@ -15,7 +15,7 @@ import (
 // http://10.0.69.84/table/1?act=status&tm=light
 type Terminal struct {
 	Url    string
-	Status int32
+	Status int
 }
 
 type Response struct {
@@ -32,7 +32,7 @@ func (t *Terminal) GetStatus() (res Response, err error) {
 	return
 }
 
-func (t *Terminal) SetStatus(status int32) (res Response, err error) {
+func (t *Terminal) SetStatus(status int) (res Response, err error) {
 	url := t.Url + "&act=set-status&status=" + strconv.Itoa(int(status))
 	res, err = t.httpGet(url)
 

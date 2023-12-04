@@ -6,7 +6,7 @@ type NodeTree struct {
 	Name         string     `json:"name"`
 	Path         string     `json:"path"`
 	Icon         string     `json:"icon"`
-	Type         int32      `json:"type"`
+	Type         int        `json:"type"`
 	ParentNodeID int32      `json:"parent_node_id"`
 	Component    string     `json:"component"`
 	Redirect     string     `json:"redirect"`

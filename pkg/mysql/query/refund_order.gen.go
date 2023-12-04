@@ -31,7 +31,7 @@ func newRefundOrder(db *gorm.DB) refundOrder {
 	_refundOrder.PaymentOrderID = field.NewInt32(tableName, "payment_order_id")
 	_refundOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_refundOrder.OrderNum = field.NewString(tableName, "order_num")
-	_refundOrder.Status = field.NewInt32(tableName, "status")
+	_refundOrder.Status = field.NewInt(tableName, "status")
 	_refundOrder.RefundNum = field.NewString(tableName, "refund_num")
 	_refundOrder.Amount = field.NewInt32(tableName, "amount")
 	_refundOrder.WxRefundID = field.NewString(tableName, "wx_refund_id")
@@ -51,7 +51,7 @@ type refundOrder struct {
 	PaymentOrderID field.Int32 // 付款单id
 	OrderID        field.Int32
 	OrderNum       field.String
-	Status         field.Int32  // 退款状态，1｜待退款，2｜退款成功，3｜退款关闭，4｜退款处理中，5｜退款异常，微信对应枚举值：SUCCESS|退款成功，CLOSED｜退款关闭，PROCESSING｜退款处理中，ABNORMAL｜退款异常
+	Status         field.Int    // 退款状态，1｜待退款，2｜退款成功，3｜退款关闭，4｜退款处理中，5｜退款异常，微信对应枚举值：SUCCESS|退款成功，CLOSED｜退款关闭，PROCESSING｜退款处理中，ABNORMAL｜退款异常
 	RefundNum      field.String // 退款单号，不可重复，同意单号多次请求只会退一次
 	Amount         field.Int32  // 退款金额
 	WxRefundID     field.String // 微信支付退款单号
@@ -77,7 +77,7 @@ func (r *refundOrder) updateTableName(table string) *refundOrder {
 	r.PaymentOrderID = field.NewInt32(table, "payment_order_id")
 	r.OrderID = field.NewInt32(table, "order_id")
 	r.OrderNum = field.NewString(table, "order_num")
-	r.Status = field.NewInt32(table, "status")
+	r.Status = field.NewInt(table, "status")
 	r.RefundNum = field.NewString(table, "refund_num")
 	r.Amount = field.NewInt32(table, "amount")
 	r.WxRefundID = field.NewString(table, "wx_refund_id")

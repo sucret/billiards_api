@@ -2,7 +2,7 @@ package request
 
 type ChangeTerminalStatus struct {
 	TerminalId int32 `form:"terminal_id" json:"terminal_id" binding:"required"`
-	Status     int32 `form:"status" json:"status" binding:"required,oneof=1 2"`
+	Status     int   `form:"status" json:"status" binding:"required,oneof=1 2"`
 }
 
 func (ChangeTerminalStatus) GetMessages() ValidatorMessages {
@@ -18,7 +18,7 @@ type SaveTerminal struct {
 	TableID    int32 `form:"table_id" json:"table_id" binding:"required"`
 	TerminalId int32 `form:"terminal_id" json:"terminal_id"`
 	//Status      int32  `form:"status" json:"status" binding:"required,oneof=1 2"`
-	Type int32  `form:"type" json:"type" binding:"required,oneof=1 2 3 5"`
+	Type int    `form:"type" json:"type" binding:"required,oneof=1 2 3 5"`
 	URL  string `form:"url" json:"url" binding:"required"`
 }
 

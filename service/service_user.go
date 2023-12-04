@@ -42,7 +42,7 @@ func (u *userService) Recharge(amount, userId int32) (user model.User, err error
 		return
 	}
 
-	user.AccountBalance = user.AccountBalance + amount
+	user.Wallet = user.Wallet + amount
 
 	u.db.Save(&user)
 	return

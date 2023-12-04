@@ -29,7 +29,7 @@ func newTaskLog(db *gorm.DB) taskLog {
 	_taskLog.ALL = field.NewAsterisk(tableName)
 	_taskLog.TaskLogID = field.NewInt64(tableName, "task_log_id")
 	_taskLog.TaskID = field.NewInt32(tableName, "task_id")
-	_taskLog.Status = field.NewInt32(tableName, "status")
+	_taskLog.Status = field.NewInt(tableName, "status")
 	_taskLog.StartTime = field.NewField(tableName, "start_time")
 	_taskLog.EndTime = field.NewField(tableName, "end_time")
 	_taskLog.Log = field.NewString(tableName, "log")
@@ -47,7 +47,7 @@ type taskLog struct {
 	ALL       field.Asterisk
 	TaskLogID field.Int64
 	TaskID    field.Int32
-	Status    field.Int32 // 任务状态：1|执行中，2|执行成功，3|执行失败，4|手动取消
+	Status    field.Int // 任务状态：1|执行中，2|执行成功，3|执行失败，4|手动取消
 	StartTime field.Field
 	EndTime   field.Field
 	Log       field.String
@@ -71,7 +71,7 @@ func (t *taskLog) updateTableName(table string) *taskLog {
 	t.ALL = field.NewAsterisk(table)
 	t.TaskLogID = field.NewInt64(table, "task_log_id")
 	t.TaskID = field.NewInt32(table, "task_id")
-	t.Status = field.NewInt32(table, "status")
+	t.Status = field.NewInt(table, "status")
 	t.StartTime = field.NewField(table, "start_time")
 	t.EndTime = field.NewField(table, "end_time")
 	t.Log = field.NewString(table, "log")

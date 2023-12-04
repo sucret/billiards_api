@@ -30,9 +30,9 @@ func newUser(db *gorm.DB) user {
 	_user.UserID = field.NewInt32(tableName, "user_id")
 	_user.OpenID = field.NewString(tableName, "open_id")
 	_user.Nickname = field.NewString(tableName, "nickname")
-	_user.AccountBalance = field.NewInt32(tableName, "account_balance")
+	_user.Wallet = field.NewInt32(tableName, "wallet")
 	_user.Avatar = field.NewString(tableName, "avatar")
-	_user.Gender = field.NewInt32(tableName, "gender")
+	_user.Gender = field.NewInt(tableName, "gender")
 	_user.Province = field.NewString(tableName, "province")
 	_user.City = field.NewString(tableName, "city")
 	_user.Country = field.NewString(tableName, "country")
@@ -47,18 +47,18 @@ func newUser(db *gorm.DB) user {
 type user struct {
 	userDo userDo
 
-	ALL            field.Asterisk
-	UserID         field.Int32
-	OpenID         field.String
-	Nickname       field.String
-	AccountBalance field.Int32 // 账户余额
-	Avatar         field.String
-	Gender         field.Int32 // 性别 0：未知、1：男、2：女
-	Province       field.String
-	City           field.String
-	Country        field.String
-	UnionID        field.String
-	CreatedAt      field.Field
+	ALL       field.Asterisk
+	UserID    field.Int32
+	OpenID    field.String
+	Nickname  field.String
+	Wallet    field.Int32 // 账户余额
+	Avatar    field.String
+	Gender    field.Int // 性别 0：未知、1：男、2：女
+	Province  field.String
+	City      field.String
+	Country   field.String
+	UnionID   field.String
+	CreatedAt field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -78,9 +78,9 @@ func (u *user) updateTableName(table string) *user {
 	u.UserID = field.NewInt32(table, "user_id")
 	u.OpenID = field.NewString(table, "open_id")
 	u.Nickname = field.NewString(table, "nickname")
-	u.AccountBalance = field.NewInt32(table, "account_balance")
+	u.Wallet = field.NewInt32(table, "wallet")
 	u.Avatar = field.NewString(table, "avatar")
-	u.Gender = field.NewInt32(table, "gender")
+	u.Gender = field.NewInt(table, "gender")
 	u.Province = field.NewString(table, "province")
 	u.City = field.NewString(table, "city")
 	u.Country = field.NewString(table, "country")
@@ -112,7 +112,7 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["user_id"] = u.UserID
 	u.fieldMap["open_id"] = u.OpenID
 	u.fieldMap["nickname"] = u.Nickname
-	u.fieldMap["account_balance"] = u.AccountBalance
+	u.fieldMap["wallet"] = u.Wallet
 	u.fieldMap["avatar"] = u.Avatar
 	u.fieldMap["gender"] = u.Gender
 	u.fieldMap["province"] = u.Province
