@@ -115,7 +115,9 @@ func (o *tableOrderService) Detail(userId, orderId int) (order *response.OrderDe
 	if err = o.db.Preload("Table").
 		Preload("Table.Shop").
 		Preload("PaymentOrderList", func(db *gorm.DB) *gorm.DB {
-			return db.Select("order_id,amount").Where("status = ?", model.PMOStatusSuccess)
+			return db.Select("order_id,amount").
+				Where("status = ?", model.PMOStatusSuccess).
+				Order("pay_mode")
 		}).
 		Where("user_id = ? AND order_id = ?", userId, orderId).
 		First(&order).Error; err != nil {
@@ -280,7 +282,6 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 		walletPayAmount = user.Wallet
 	}
 
-	//tool.Dump(user)
 	// 生成余额支付订单
 	if walletPayAmount > 0 {
 		payment, err := PaymentService.MakeWalletOrder(
@@ -348,6 +349,12 @@ func (o *tableOrderService) PaySuccess(orderId int32, db *gorm.DB) (order model.
 			zap.Any("table", table),
 			zap.Int32("order_id", orderId))
 
+		return model.TableOrder{}, err
+	}
+
+	_, err = PaymentService.MakeWalletOrderSuccess(orderId, order.UserID)
+	if err != nil {
+		log.GetLogger().Error("pay_notify", zap.String("msg", err.Error()))
 		return model.TableOrder{}, err
 	}
 
