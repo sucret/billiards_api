@@ -57,6 +57,7 @@ func (p *paymentService) RefundWxPay(paymentOrder model.PaymentOrder, amount int
 	return
 }
 
+// 给钱包付款单退款
 func (p *paymentService) RefundWalletPay(paymentOrder model.PaymentOrder, userId, amount int32) (
 	refundOrder model.RefundOrder, err error) {
 	// 获取用户信息
@@ -143,7 +144,9 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	paymentOrder.BankType = *res.BankType
 	paymentOrder.TransactionID = *res.TransactionId
 	paymentOrder.TradeState = *res.TradeState
-	fmt.Println(res, request)
+	if *res.TradeState == "SUCCESS" {
+		paymentOrder.Status = model.PMOStatusSuccess
+	}
 
 	if err = p.db.Save(&paymentOrder).Error; err != nil {
 		log.GetLogger().Error("pay_error", zap.String("msg", "更新支付订单失败："+err.Error()))
@@ -153,7 +156,6 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	if paymentOrder.OrderType == model.POTypeTable {
 		// 开台订单回调
 		_, err = TableOrderService.PaySuccess(paymentOrder.OrderID, p.db)
-		//p.MakeWalletOrderSuccess(paymentOrder.OrderID, )
 	} else if paymentOrder.OrderType == model.POTypeRecharge {
 		// 充值订单回调
 		_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
@@ -170,8 +172,10 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 
 // 将钱包余额支付的付款单改为支付成功
 func (p *paymentService) MakeWalletOrderSuccess(orderId, userId int32) (paymentOrder model.PaymentOrder, err error) {
-	if err = p.db.Where("order_id = ?", orderId).First(&paymentOrder).Error; err != nil {
-		log.GetLogger().Error("pay_error", zap.String("msg", "查询支付订单失败："+err.Error()))
+	p.db.Where("order_id = ?", orderId).First(&paymentOrder)
+
+	// 没查询到零钱付款单直接返回
+	if paymentOrder.OrderID == 0 {
 		return
 	}
 
@@ -195,7 +199,8 @@ func (p *paymentService) MakeWalletOrderSuccess(orderId, userId int32) (paymentO
 }
 
 //创建余额支付订单
-func (p *paymentService) MakeWalletOrder(user *model.User, amount int32, orderType int, orderId int32, db *gorm.DB) (order model.PaymentOrder, err error) {
+func (p *paymentService) MakeWalletOrder(
+	amount int32, orderType int, orderId int32, db *gorm.DB) (order model.PaymentOrder, err error) {
 	order = model.PaymentOrder{
 		PaymentOrderNo: tool.GenerateOrderNum(),
 		OrderID:        orderId,
@@ -208,12 +213,6 @@ func (p *paymentService) MakeWalletOrder(user *model.User, amount int32, orderTy
 	if err = db.Create(&order).Error; err != nil {
 		return
 	}
-
-	// 扣除余额
-	//user.Wallet = user.Wallet - amount
-	//if err = db.Save(&user).Error; err != nil {
-	//	return
-	//}
 
 	return
 }
@@ -231,6 +230,7 @@ func (p *paymentService) MakeWechatPrepayOrder(userId, amount int32, orderType i
 		Amount:         amount,
 		OrderType:      orderType,
 		PayMode:        model.PMOModeWechat,
+		Status:         model.PMOStatusDefault,
 	}
 
 	if err = p.db.Create(&paymentOrder).Error; err != nil {

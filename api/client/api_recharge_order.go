@@ -1,6 +1,7 @@
 package api
 
 import (
+	"billiards/pkg/config"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,11 @@ import (
 type rechargeOrderApi struct{}
 
 var RechargeOrderApi = new(rechargeOrderApi)
+
+func (*rechargeOrderApi) Price(c *gin.Context) {
+	price := config.GetConfig().RechargeAmount
+	response.Success(c, price)
+}
 
 func (*rechargeOrderApi) Create(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.GetString("userId"))

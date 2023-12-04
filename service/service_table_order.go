@@ -284,11 +284,8 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 
 	// 生成余额支付订单
 	if walletPayAmount > 0 {
-		payment, err := PaymentService.MakeWalletOrder(
-			&user, walletPayAmount, model.POTypeTable, order.OrderID, tx)
-
+		_, err = PaymentService.MakeWalletOrder(walletPayAmount, model.POTypeTable, order.OrderID, tx)
 		if err != nil {
-			fmt.Println(payment, err)
 			log.GetLogger().Error("gen_payment_order_err", zap.String("msg", err.Error()))
 			tx.Rollback()
 			return response.TableOrderPrePayParam{}, err
