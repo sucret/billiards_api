@@ -37,7 +37,7 @@ func (s *shopService) Detail(shopId int) (shop model.Shop, err error) {
 func (s *shopService) List() (list []*response.Shop) {
 	s.db.Order("shop_id DESC").
 		Preload("TableList").
-		Find(list)
+		Find(&list)
 
 	for _, v := range list {
 		v.TableNum = len(v.TableList)
