@@ -5,7 +5,6 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
-	"billiards/pkg/tool"
 	"billiards/response"
 	"errors"
 	"fmt"
@@ -166,7 +165,6 @@ func (o *tableOrderService) List(userId int, orderType int) (list []model.TableO
 	}
 	if err := query.Order("order_id desc").
 		Find(&list).Error; err != nil {
-		fmt.Println(err)
 	}
 
 	return
@@ -196,7 +194,6 @@ func (o *tableOrderService) TimingCancel() {
 		Find(&orderList)
 
 	for _, v := range orderList {
-		fmt.Println(v)
 		v.Status = model.OrderStatusAutoCancel
 		err := o.db.Save(&v).Error
 		if err != nil {
@@ -222,8 +219,8 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 	go o.TimingCancel()
 
 	// todo 这里的锁需要再斟酌一下，如果开启的话，那同时所有的球桌就只能有一个人下单（单服务器的情况下）
-	o.lock.Lock()
-	defer o.lock.Unlock()
+	//o.lock.Lock()
+	//defer o.lock.Unlock()
 
 	order := model.TableOrder{}
 	tx := o.db.Begin()
@@ -259,8 +256,7 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 	}
 
 	if err = tx.Create(&order).Error; err != nil {
-		log.GetLogger().Error("create_order",
-			zap.String("err_msg", err.Error()),
+		log.GetLogger().Error("create_order", zap.String("err_msg", err.Error()),
 			zap.Any("order", order))
 
 		err = errors.New("创建订单，请重试")
@@ -273,6 +269,7 @@ func (o *tableOrderService) Create(tableId, userId int32) (resp response.TableOr
 
 	// 获取用户信息
 	user, _ := UserService.GetByUserId(userId)
+
 	// 判断用户余额是否够支付，如果够，则不用微信支付
 	if user.Wallet >= table.Shop.Deposit {
 		wxPayAmount = 0
@@ -349,7 +346,7 @@ func (o *tableOrderService) PaySuccess(orderId int32, db *gorm.DB) (order model.
 		return model.TableOrder{}, err
 	}
 
-	_, err = PaymentService.MakeWalletOrderSuccess(orderId, order.UserID)
+	_, err = PaymentService.MakeWalletOrderSuccess(db, orderId, order.UserID)
 	if err != nil {
 		log.GetLogger().Error("pay_notify", zap.String("msg", err.Error()))
 		return model.TableOrder{}, err
@@ -375,6 +372,4 @@ func (o *tableOrderService) settlement(order *model.TableOrder) {
 	order.Amount = order.Table.Price / 60 * int32(minutes)
 	//order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
 
-	fmt.Println("订单：")
-	tool.Dump(order)
 }

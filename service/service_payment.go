@@ -8,7 +8,6 @@ import (
 	"billiards/pkg/tool"
 	"billiards/pkg/wechat"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
@@ -89,7 +88,6 @@ func (p *paymentService) RefundOrder(order model.TableOrder, amount int32) {
 	for _, v := range order.PaymentOrderList {
 		// 付款金额如果大于退款金额，则退掉就结束
 		// 付款金额如果
-		fmt.Println(v)
 		payAmount := v.Amount
 
 		if amount <= 0 {
@@ -159,7 +157,6 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	} else if paymentOrder.OrderType == model.POTypeRecharge {
 		// 充值订单回调
 		_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
-		fmt.Println(err)
 	}
 
 	if err != nil {
@@ -171,8 +168,8 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 }
 
 // 将钱包余额支付的付款单改为支付成功
-func (p *paymentService) MakeWalletOrderSuccess(orderId, userId int32) (paymentOrder model.PaymentOrder, err error) {
-	p.db.Where("order_id = ?", orderId).First(&paymentOrder)
+func (p *paymentService) MakeWalletOrderSuccess(db *gorm.DB, orderId, userId int32) (paymentOrder model.PaymentOrder, err error) {
+	db.Where("order_id = ?", orderId).First(&paymentOrder)
 
 	// 没查询到零钱付款单直接返回
 	if paymentOrder.OrderID == 0 {
@@ -180,7 +177,7 @@ func (p *paymentService) MakeWalletOrderSuccess(orderId, userId int32) (paymentO
 	}
 
 	user := model.User{}
-	p.db.Where("user_id = ?", userId).First(&user)
+	db.Where("user_id = ?", userId).First(&user)
 
 	if user.Wallet < paymentOrder.Amount {
 		log.GetLogger().Error("wallet_error", zap.String("msg", "余额小于支付金额，支付失败"))
@@ -191,9 +188,9 @@ func (p *paymentService) MakeWalletOrderSuccess(orderId, userId int32) (paymentO
 	user.Wallet = user.Wallet - paymentOrder.Amount
 
 	paymentOrder.Status = model.PMOStatusSuccess
-	p.db.Save(&paymentOrder)
 
-	p.db.Save(&user)
+	db.Save(&paymentOrder)
+	db.Save(&user)
 
 	return
 }

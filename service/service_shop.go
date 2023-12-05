@@ -5,6 +5,7 @@ import (
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
 	"billiards/request"
+	"billiards/response"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
@@ -33,8 +34,21 @@ func (s *shopService) Detail(shopId int) (shop model.Shop, err error) {
 	return
 }
 
-func (s *shopService) List() (list []model.Shop) {
-	s.db.Order("shop_id DESC").Find(&list)
+func (s *shopService) List() (list []*response.Shop) {
+	s.db.Order("shop_id DESC").
+		Preload("TableList").
+		Find(list)
+
+	for _, v := range list {
+		v.TableNum = len(v.TableList)
+
+		for _, t := range v.TableList {
+			if t.Status == model.TableStatusClose {
+				v.TableFreeNum = v.TableFreeNum + 1
+			}
+		}
+	}
+
 	return
 }
 
