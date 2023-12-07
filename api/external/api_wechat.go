@@ -14,7 +14,7 @@ var WechatApi = new(wechatApi)
 
 // 支付回调
 func (*wechatApi) PayNotify(c *gin.Context) {
-	err := service.PaymentService.PayNotify(c)
+	err := service.PaymentService.WechatPayNotify(c)
 	if err != nil {
 		response.BusinessFail(c, err.Error())
 		return
