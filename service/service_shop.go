@@ -4,6 +4,7 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
+	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"errors"
@@ -40,15 +41,20 @@ func (s *shopService) List() (list []*response.Shop) {
 		Find(&list)
 
 	for _, v := range list {
-		v.TableNum = len(v.TableList)
+		v.BilliardsTableNum = len(v.TableList)
 
 		for _, t := range v.TableList {
 			if t.Status == model.TableStatusClose {
-				v.TableFreeNum = v.TableFreeNum + 1
+				v.BilliardsTableFreeNum = v.BilliardsTableFreeNum + 1
 			}
+		}
+		v.BilliardsPrice = 0
+		if len(v.TableList) > 0 {
+			v.BilliardsPrice = v.TableList[0].Price
 		}
 	}
 
+	tool.Dump(list)
 	return
 }
 

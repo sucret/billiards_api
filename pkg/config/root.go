@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"path"
+	"runtime"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -16,7 +18,10 @@ var (
 
 func InitializeConfig() *viper.Viper {
 	// 设置配置文件路径
-	configFile := "config.yaml"
+	_, filePath, _, _ := runtime.Caller(0)
+	dirPath := path.Dir(filePath)
+	configFile := dirPath + "/../../config.yaml"
+
 	// 生产环境可以通过设置环境变量来改变配置文件路径
 	if configEnv := os.Getenv("VIPER_CONFIG"); configEnv != "" {
 		configFile = configEnv

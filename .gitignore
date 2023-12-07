@@ -3,3 +3,4 @@ config.yaml
 /.idea
 /billiards
 /cert/ap*
+/test/tmp/*

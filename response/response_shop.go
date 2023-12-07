@@ -4,6 +4,7 @@ import "billiards/pkg/mysql/model"
 
 type Shop struct {
 	model.Shop
-	TableNum     int `json:"table_num"`
-	TableFreeNum int `json:"table_free_num"`
+	BilliardsTableNum     int   `json:"billiards_table_num"`
+	BilliardsTableFreeNum int   `json:"billiards_table_free_num"`
+	BilliardsPrice        int32 `json:"billiards_price"`
 }

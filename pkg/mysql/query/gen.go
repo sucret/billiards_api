@@ -15,7 +15,10 @@ var (
 	Q             = new(Query)
 	Admin         *admin
 	AdminRole     *adminRole
+	Coupon        *coupon
+	CouponOrder   *couponOrder
 	Node          *node
+	Order         *order
 	OrderLog      *orderLog
 	PaymentOrder  *paymentOrder
 	RechargeOrder *rechargeOrder
@@ -29,13 +32,17 @@ var (
 	TaskLog       *taskLog
 	Terminal      *terminal
 	User          *user
+	UserCoupon    *userCoupon
 )
 
 func SetDefault(db *gorm.DB) {
 	*Q = *Use(db)
 	Admin = &Q.Admin
 	AdminRole = &Q.AdminRole
+	Coupon = &Q.Coupon
+	CouponOrder = &Q.CouponOrder
 	Node = &Q.Node
+	Order = &Q.Order
 	OrderLog = &Q.OrderLog
 	PaymentOrder = &Q.PaymentOrder
 	RechargeOrder = &Q.RechargeOrder
@@ -49,6 +56,7 @@ func SetDefault(db *gorm.DB) {
 	TaskLog = &Q.TaskLog
 	Terminal = &Q.Terminal
 	User = &Q.User
+	UserCoupon = &Q.UserCoupon
 }
 
 func Use(db *gorm.DB) *Query {
@@ -56,7 +64,10 @@ func Use(db *gorm.DB) *Query {
 		db:            db,
 		Admin:         newAdmin(db),
 		AdminRole:     newAdminRole(db),
+		Coupon:        newCoupon(db),
+		CouponOrder:   newCouponOrder(db),
 		Node:          newNode(db),
+		Order:         newOrder(db),
 		OrderLog:      newOrderLog(db),
 		PaymentOrder:  newPaymentOrder(db),
 		RechargeOrder: newRechargeOrder(db),
@@ -70,6 +81,7 @@ func Use(db *gorm.DB) *Query {
 		TaskLog:       newTaskLog(db),
 		Terminal:      newTerminal(db),
 		User:          newUser(db),
+		UserCoupon:    newUserCoupon(db),
 	}
 }
 
@@ -78,7 +90,10 @@ type Query struct {
 
 	Admin         admin
 	AdminRole     adminRole
+	Coupon        coupon
+	CouponOrder   couponOrder
 	Node          node
+	Order         order
 	OrderLog      orderLog
 	PaymentOrder  paymentOrder
 	RechargeOrder rechargeOrder
@@ -92,6 +107,7 @@ type Query struct {
 	TaskLog       taskLog
 	Terminal      terminal
 	User          user
+	UserCoupon    userCoupon
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -101,7 +117,10 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		db:            db,
 		Admin:         q.Admin.clone(db),
 		AdminRole:     q.AdminRole.clone(db),
+		Coupon:        q.Coupon.clone(db),
+		CouponOrder:   q.CouponOrder.clone(db),
 		Node:          q.Node.clone(db),
+		Order:         q.Order.clone(db),
 		OrderLog:      q.OrderLog.clone(db),
 		PaymentOrder:  q.PaymentOrder.clone(db),
 		RechargeOrder: q.RechargeOrder.clone(db),
@@ -115,13 +134,17 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		TaskLog:       q.TaskLog.clone(db),
 		Terminal:      q.Terminal.clone(db),
 		User:          q.User.clone(db),
+		UserCoupon:    q.UserCoupon.clone(db),
 	}
 }
 
 type queryCtx struct {
 	Admin         IAdminDo
 	AdminRole     IAdminRoleDo
+	Coupon        ICouponDo
+	CouponOrder   ICouponOrderDo
 	Node          INodeDo
+	Order         IOrderDo
 	OrderLog      IOrderLogDo
 	PaymentOrder  IPaymentOrderDo
 	RechargeOrder IRechargeOrderDo
@@ -135,13 +158,17 @@ type queryCtx struct {
 	TaskLog       ITaskLogDo
 	Terminal      ITerminalDo
 	User          IUserDo
+	UserCoupon    IUserCouponDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		Admin:         q.Admin.WithContext(ctx),
 		AdminRole:     q.AdminRole.WithContext(ctx),
+		Coupon:        q.Coupon.WithContext(ctx),
+		CouponOrder:   q.CouponOrder.WithContext(ctx),
 		Node:          q.Node.WithContext(ctx),
+		Order:         q.Order.WithContext(ctx),
 		OrderLog:      q.OrderLog.WithContext(ctx),
 		PaymentOrder:  q.PaymentOrder.WithContext(ctx),
 		RechargeOrder: q.RechargeOrder.WithContext(ctx),
@@ -155,6 +182,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		TaskLog:       q.TaskLog.WithContext(ctx),
 		Terminal:      q.Terminal.WithContext(ctx),
 		User:          q.User.WithContext(ctx),
+		UserCoupon:    q.UserCoupon.WithContext(ctx),
 	}
 }
 

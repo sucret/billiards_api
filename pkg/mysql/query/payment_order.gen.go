@@ -29,6 +29,7 @@ func newPaymentOrder(db *gorm.DB) paymentOrder {
 	_paymentOrder.ALL = field.NewAsterisk(tableName)
 	_paymentOrder.PaymentOrderID = field.NewInt32(tableName, "payment_order_id")
 	_paymentOrder.OrderID = field.NewInt32(tableName, "order_id")
+	_paymentOrder.UserID = field.NewInt32(tableName, "user_id")
 	_paymentOrder.OrderType = field.NewInt(tableName, "order_type")
 	_paymentOrder.Status = field.NewInt(tableName, "status")
 	_paymentOrder.PaymentOrderNo = field.NewString(tableName, "payment_order_no")
@@ -53,7 +54,8 @@ type paymentOrder struct {
 	ALL            field.Asterisk
 	PaymentOrderID field.Int32
 	OrderID        field.Int32
-	OrderType      field.Int    // 订单类型，1｜开台订单支付，2｜充值支付
+	UserID         field.Int32
+	OrderType      field.Int    // 订单类型，1｜开台订单支付，2｜充值支付，3｜购买优惠券
 	Status         field.Int    // 订单状态，1|待支付，2|支付完成
 	PaymentOrderNo field.String // 订单号
 	PayMode        field.Int    // 支付方式，1｜微信支付，2｜余额支付
@@ -93,6 +95,7 @@ func (p *paymentOrder) updateTableName(table string) *paymentOrder {
 	p.ALL = field.NewAsterisk(table)
 	p.PaymentOrderID = field.NewInt32(table, "payment_order_id")
 	p.OrderID = field.NewInt32(table, "order_id")
+	p.UserID = field.NewInt32(table, "user_id")
 	p.OrderType = field.NewInt(table, "order_type")
 	p.Status = field.NewInt(table, "status")
 	p.PaymentOrderNo = field.NewString(table, "payment_order_no")
@@ -129,9 +132,10 @@ func (p *paymentOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *paymentOrder) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 14)
+	p.fieldMap = make(map[string]field.Expr, 15)
 	p.fieldMap["payment_order_id"] = p.PaymentOrderID
 	p.fieldMap["order_id"] = p.OrderID
+	p.fieldMap["user_id"] = p.UserID
 	p.fieldMap["order_type"] = p.OrderType
 	p.fieldMap["status"] = p.Status
 	p.fieldMap["payment_order_no"] = p.PaymentOrderNo

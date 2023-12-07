@@ -1,7 +1,6 @@
 package api
 
 import (
-	"billiards/request"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -14,13 +13,13 @@ var TableOrderApi = new(tableOrderApi)
 
 func (*tableOrderApi) Terminate(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.GetString("userId"))
-	orderId, err := strconv.Atoi(c.Query("order_id"))
+	tableOrderId, err := strconv.Atoi(c.Query("table_order_id"))
 	if err != nil {
 		response.BusinessFail(c, "参数错误")
 		return
 	}
 
-	order, err := service.TableOrderService.Terminate(userId, orderId)
+	order, err := service.TableOrderService.Terminate(userId, tableOrderId)
 	if err != nil {
 		response.BusinessFail(c, err.Error())
 		return
@@ -31,13 +30,13 @@ func (*tableOrderApi) Terminate(c *gin.Context) {
 
 func (*tableOrderApi) Detail(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.GetString("userId"))
-	orderId, err := strconv.Atoi(c.Query("order_id"))
+	tableOrderId, err := strconv.Atoi(c.Query("table_order_id"))
 	if err != nil {
 		response.BusinessFail(c, "参数错误")
 		return
 	}
 
-	order, err := service.TableOrderService.Detail(userId, orderId)
+	order, err := service.TableOrderService.Detail(userId, tableOrderId)
 
 	if err != nil {
 		response.BusinessFail(c, err.Error())
@@ -65,20 +64,20 @@ func (*tableOrderApi) List(c *gin.Context) {
 }
 
 func (*tableOrderApi) Create(c *gin.Context) {
-	var form request.OrderCreate
-	if err := c.ShouldBindJSON(&form); err != nil {
-		response.ValidateFail(c, request.GetErrorMsg(form, err))
-		return
-	}
-	userId, _ := strconv.Atoi(c.GetString("userId"))
-
-	order, err := service.TableOrderService.Create(form.TableID, int32(userId))
-	if err != nil {
-		response.BusinessFail(c, err.Error())
-		return
-	}
-
-	response.Success(c, order)
+	//var form request.OrderCreate
+	//if err := c.ShouldBindJSON(&form); err != nil {
+	//	response.ValidateFail(c, request.GetErrorMsg(form, err))
+	//	return
+	//}
+	//userId, _ := strconv.Atoi(c.GetString("userId"))
+	//
+	//order, err := service.TableOrderService.Create(form.TableID, int32(userId))
+	//if err != nil {
+	//	response.BusinessFail(c, err.Error())
+	//	return
+	//}
+	//
+	//response.Success(c, order)
 }
 
 // 查询用户当前订单的支付结果

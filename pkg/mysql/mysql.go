@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -77,8 +79,13 @@ func getGormLogWriter() logger.Writer {
 	// 是否启用日志文件
 	if conf.Database.EnableFileLogWriter {
 		// 自定义 Writer
+
+		_, filePath, _, _ := runtime.Caller(0)
+		dirPath := path.Dir(filePath)
+		configFile := dirPath + "/../../"
+
 		writer = &lumberjack.Logger{
-			Filename:   conf.Log.RootDir + "/" + conf.Database.LogFilename,
+			Filename:   configFile + conf.Log.RootDir + "/" + conf.Database.LogFilename,
 			MaxSize:    conf.Log.MaxSize,
 			MaxBackups: conf.Log.MaxBackups,
 			MaxAge:     conf.Log.MaxAge,

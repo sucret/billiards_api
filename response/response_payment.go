@@ -15,3 +15,8 @@ type RechargeOrderPrePayParam struct {
 	JsApi *jsapi.PrepayWithRequestPaymentResponse `json:"js_api"`
 	Order *model.RechargeOrder                    `json:"order"`
 }
+
+type CouponOrderPrePayParam struct {
+	JsApi *jsapi.PrepayWithRequestPaymentResponse `json:"js_api"`
+	Order *model.CouponOrder
+}

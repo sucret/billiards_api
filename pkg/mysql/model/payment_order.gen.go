@@ -10,7 +10,8 @@ const TableNamePaymentOrder = "payment_order"
 type PaymentOrder struct {
 	PaymentOrderID int32  `gorm:"column:payment_order_id;type:int(11);primaryKey;autoIncrement:true" json:"payment_order_id"`
 	OrderID        int32  `gorm:"column:order_id;type:int(11);not null" json:"order_id"`
-	OrderType      int    `gorm:"column:order_type;type:tinyint(4);not null" json:"order_type"`           // 订单类型，1｜开台订单支付，2｜充值支付
+	UserID         int32  `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
+	OrderType      int    `gorm:"column:order_type;type:tinyint(4);not null" json:"order_type"`           // 订单类型，1｜开台订单支付，2｜充值支付，3｜购买优惠券
 	Status         int    `gorm:"column:status;type:tinyint(3) unsigned;not null" json:"status"`          // 订单状态，1|待支付，2|支付完成
 	PaymentOrderNo string `gorm:"column:payment_order_no;type:char(20);not null" json:"payment_order_no"` // 订单号
 	PayMode        int    `gorm:"column:pay_mode;type:tinyint(4);not null" json:"pay_mode"`               // 支付方式，1｜微信支付，2｜余额支付

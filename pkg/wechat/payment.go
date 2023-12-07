@@ -17,6 +17,8 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"go.uber.org/zap"
+	"path"
+	"runtime"
 )
 
 // 微信支付相关
@@ -33,13 +35,17 @@ type Payment struct {
 
 func NewPayment() (p *Payment) {
 	// TODO 参数后期加入配置文件里边
+	_, filePath, _, _ := runtime.Caller(0)
+	dirPath := path.Dir(filePath)
+	certFilePath := dirPath + "/../../cert/apiclient_key.pem"
+
 	p = &Payment{
 		appId:               "wx6fab07b9528faf96",
 		mchId:               "1660752841",
 		notifyUrl:           "https://billiards.wosta.cn/e/wechat/pay-notify",
 		mchApiV3Key:         "YLcdCByxLQdCQXNzd3cQ8J8H7dD9P4CU",
 		mchCertSerialNumber: "27234D02B606B0557E6361C44D91788FE5FC454A",
-		mchCertKeyFile:      "cert/apiclient_key.pem",
+		mchCertKeyFile:      certFilePath,
 	}
 
 	return

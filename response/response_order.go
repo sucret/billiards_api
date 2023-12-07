@@ -2,6 +2,7 @@ package response
 
 import (
 	"billiards/pkg/mysql/model"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 )
 
 type OrderDetail struct {
@@ -14,4 +15,23 @@ type OrderDetail struct {
 type RechargeResult struct {
 	Succeed bool  `json:"succeed"`
 	Wallet  int32 `json:"wallet"`
+}
+
+type PayResult struct {
+	Succeed bool  `json:"succeed"`
+	Wallet  int32 `json:"wallet"`
+}
+
+type PaymentOrderResp struct {
+	Order              model.Order
+	WxPaymentOrder     model.PaymentOrder
+	WalletPaymentOrder model.PaymentOrder
+	WxPayResp          *jsapi.PrepayWithRequestPaymentResponse
+}
+
+type OrderResp struct {
+	Order     model.Order                             `json:"order"`
+	WxPayResp *jsapi.PrepayWithRequestPaymentResponse `json:"wx_pay_resp"`
+	NeedWxPay bool                                    `json:"need_wx_pay"`
+	//Payment
 }

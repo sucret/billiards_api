@@ -7,6 +7,7 @@ import (
 	redis_ "billiards/pkg/redis"
 	"billiards/pkg/tool"
 	"billiards/pkg/wechat"
+	"billiards/response"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
@@ -23,6 +24,65 @@ type paymentService struct {
 var PaymentService = &paymentService{
 	db:    mysql.GetDB(),
 	redis: redis_.GetRedis(),
+}
+
+// 生成付款单
+// 可以是普通下单，也可以是续费支付
+// 根据能否使用余额以及用户余额来生成付款单
+// 如果需要用微信支付，则生成微信预支付参数
+func (p *paymentService) CreateOrder(tx *gorm.DB, userId, orderId, payAmount int32, canUseWallet bool) (
+	resp response.PaymentOrderResp, err error) {
+	// 计算微信支付和余额支付各自的金额
+	var wxPayAmount int32
+	var walletPayAmount int32
+
+	user, err := UserService.GetByUserId(userId)
+	if err != nil {
+		return response.PaymentOrderResp{}, err
+	}
+
+	if canUseWallet {
+		if user.Wallet > payAmount {
+			walletPayAmount = payAmount
+		} else if user.Wallet > 0 && user.Wallet < payAmount {
+			walletPayAmount = user.Wallet
+			wxPayAmount = payAmount - walletPayAmount
+		}
+	} else {
+		wxPayAmount = payAmount
+	}
+
+	// 有余额付款则生成余额付款单
+	if walletPayAmount > 0 {
+		resp.WalletPaymentOrder, err = p.makePaymentOrder(tx, walletPayAmount, userId, orderId, model.PMOModeWallet)
+		if err != nil {
+			return response.PaymentOrderResp{}, err
+		}
+	}
+
+	// 有微信支付则生成微信付款单
+	if wxPayAmount > 0 {
+		resp.WxPaymentOrder, err = p.makePaymentOrder(tx, wxPayAmount, userId, orderId, model.PMOModeWechat)
+		if err != nil {
+			return response.PaymentOrderResp{}, err
+		}
+
+		// 生成微信支付的参数
+		resp.WxPayResp, err = wechat.NewPayment().GetPrepayBill(user.OpenID, "description", resp.WxPaymentOrder.PaymentOrderNo, wxPayAmount)
+		if err != nil {
+			return response.PaymentOrderResp{}, err
+		}
+	}
+
+	// 没有微信支付的话，那就直接把订单改成已支付
+	if wxPayAmount == 0 && walletPayAmount >= 0 {
+		err = OrderService.PaySuccess(tx, orderId)
+		if err != nil {
+			return response.PaymentOrderResp{}, err
+		}
+	}
+
+	return
 }
 
 // 给指定付款单退款
@@ -153,10 +213,10 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 
 	if paymentOrder.OrderType == model.POTypeTable {
 		// 开台订单回调
-		_, err = TableOrderService.PaySuccess(paymentOrder.OrderID, p.db)
+		//_, err = TableOrderService.PaySuccess(paymentOrder.OrderID, p.db)
 	} else if paymentOrder.OrderType == model.POTypeRecharge {
 		// 充值订单回调
-		_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
+		//_, err = RechargeOrderService.PaySuccess(paymentOrder.OrderID)
 	}
 
 	if err != nil {
@@ -167,17 +227,79 @@ func (p *paymentService) PayNotify(c *gin.Context) (err error) {
 	return
 }
 
-// 将钱包余额支付的付款单改为支付成功
-func (p *paymentService) MakeWalletOrderSuccess(db *gorm.DB, orderId, userId int32) (paymentOrder model.PaymentOrder, err error) {
-	db.Where("order_id = ?", orderId).First(&paymentOrder)
-
-	// 没查询到零钱付款单直接返回
-	if paymentOrder.OrderID == 0 {
+func (p *paymentService) DoOrderSuccess(db *gorm.DB, paymentOrder *model.PaymentOrder) (err error) {
+	// 更新付款单状态
+	paymentOrder.Status = model.PMOStatusSuccess
+	if err = db.Save(&paymentOrder).Error; err != nil {
+		log.GetLogger().Error("pay_error", zap.String("msg", "更新支付订单失败："+err.Error()))
 		return
 	}
 
+	// 如果是钱包支付，这里需要去扣掉用户余额
+	if paymentOrder.PayMode == model.PMOModeWallet {
+		err = UserService.ChangeWallet(db, paymentOrder.UserID, paymentOrder.Amount*-1)
+		if err != nil {
+			return err
+		}
+	}
+
+	return
+}
+
+// 微信支付回调
+func (p *paymentService) WechatPayNotify(c *gin.Context) (err error) {
+	res, request, err := wechat.NewPayment().GetPayResult(c)
+	if err != nil {
+		return
+	}
+
+	tx := p.db.Begin()
+	defer tx.Rollback()
+
+	// 根据微信返回的付款单号查询对应的付款单
+	paymentOrder := model.PaymentOrder{}
+	if err = tx.Where("payment_order_no = ?", res.OutTradeNo).First(&paymentOrder).Error; err != nil {
+		log.GetLogger().Error("pay_error", zap.String("msg", "查询支付订单失败："+err.Error()))
+		return
+	}
+
+	if *res.TradeState != "SUCCESS" {
+		log.GetLogger().Error("pay_error", zap.String("msg", "订单支付失败"+*res.TradeState))
+		return
+	}
+
+	// 更新付款单信息
+	paymentOrder.NotifyID = request.ID
+	paymentOrder.Resource = ""
+	paymentOrder.BankType = *res.BankType
+	paymentOrder.TransactionID = *res.TransactionId
+	paymentOrder.TradeState = *res.TradeState
+	if err = tx.Save(&paymentOrder).Error; err != nil {
+		log.GetLogger().Error("pay_error", zap.String("msg", "更新付款单信息失败："+err.Error()))
+		return
+	}
+
+	//err = p.DoWechatOrderSuccess(tx, &paymentOrder)
+	//if err != nil {
+	//	return err
+	//}
+
+	// 调用订单支付成功的方法
+	err = OrderService.PaySuccess(tx, paymentOrder.OrderID)
+	if err != nil {
+		log.GetLogger().Error("pay_error", zap.String("msg", "更新订单失败："+err.Error()))
+		return err
+	}
+
+	tx.Commit()
+
+	return
+}
+
+// 将钱包余额支付的付款单改为支付成功
+func (p *paymentService) DoWalletOrderSuccess(db *gorm.DB, paymentOrder *model.PaymentOrder) (err error) {
 	user := model.User{}
-	db.Where("user_id = ?", userId).First(&user)
+	db.Where("user_id = ?", paymentOrder.UserID).First(&user)
 
 	if user.Wallet < paymentOrder.Amount {
 		log.GetLogger().Error("wallet_error", zap.String("msg", "余额小于支付金额，支付失败"))
@@ -185,26 +307,55 @@ func (p *paymentService) MakeWalletOrderSuccess(db *gorm.DB, orderId, userId int
 		return
 	}
 
-	user.Wallet = user.Wallet - paymentOrder.Amount
-
+	// 更新付款单状态
 	paymentOrder.Status = model.PMOStatusSuccess
-
 	db.Save(&paymentOrder)
+
+	// 扣除用户余额
+	user.Wallet = user.Wallet - paymentOrder.Amount
 	db.Save(&user)
 
 	return
 }
 
-//创建余额支付订单
-func (p *paymentService) MakeWalletOrder(
-	amount int32, orderType int, orderId int32, db *gorm.DB) (order model.PaymentOrder, err error) {
-	order = model.PaymentOrder{
+// 创建优惠券订单
+func (p *paymentService) MakeCouponOrder(db *gorm.DB, amount int32, orderType int, orderId, userId int32, description string) (
+	payment *jsapi.PrepayWithRequestPaymentResponse, err error) {
+
+	user, _ := UserService.GetByUserId(userId)
+
+	paymentOrder := model.PaymentOrder{
 		PaymentOrderNo: tool.GenerateOrderNum(),
 		OrderID:        orderId,
 		Amount:         amount,
 		OrderType:      orderType,
-		PayMode:        model.PMOModeWallet,
+
+		PayMode: model.PMOModeWechat,
+		Status:  model.PMOStatusDefault,
+	}
+
+	if err = db.Create(&paymentOrder).Error; err != nil {
+		return
+	}
+
+	payment, err = wechat.NewPayment().GetPrepayBill(user.OpenID, description, paymentOrder.PaymentOrderNo, amount)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+//创建余额支付订单
+func (p *paymentService) makePaymentOrder(db *gorm.DB, amount, userId, orderId int32, payMode int) (
+	order model.PaymentOrder, err error) {
+	order = model.PaymentOrder{
+		PaymentOrderNo: tool.GenerateOrderNum(),
+		OrderID:        orderId,
+		Amount:         amount,
+		PayMode:        payMode,
 		Status:         model.PMOStatusDefault,
+		UserID:         userId,
 	}
 
 	if err = db.Create(&order).Error; err != nil {

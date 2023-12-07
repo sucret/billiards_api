@@ -1,6 +1,7 @@
 package api
 
 import (
+	"billiards/pkg/tool"
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,8 @@ func (*tableApi) GetOrder(c *gin.Context) {
 		response.Success(c, nil)
 		return
 	}
+
+	tool.Dump(order)
 
 	response.Success(c, order)
 }

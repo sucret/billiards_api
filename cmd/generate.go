@@ -133,6 +133,8 @@ func generateTable() {
 	table := g.GenerateModel("table")
 	paymentOrder := g.GenerateModel("payment_order")
 
+	coupon := g.GenerateModel("coupon")
+
 	shop := g.GenerateModel("shop", []gen.ModelOpt{
 		gen.FieldRelate(field.HasMany, "TableList", table, &field.RelateConfig{GORMTag: "hasmany:table;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
 	}...)
@@ -150,6 +152,10 @@ func generateTable() {
 
 	g.GenerateModel("recharge_order", []gen.ModelOpt{
 		gen.FieldRelate(field.HasOne, "PaymentOrderList", paymentOrder, &field.RelateConfig{GORMTag: "hasone:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
+	}...)
+
+	g.GenerateModel("user_coupon", []gen.ModelOpt{
+		gen.FieldRelate(field.HasOne, "Coupon", coupon, &field.RelateConfig{GORMTag: "hasone:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)

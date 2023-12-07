@@ -27,6 +27,7 @@ func newRechargeOrder(db *gorm.DB) rechargeOrder {
 
 	tableName := _rechargeOrder.rechargeOrderDo.TableName()
 	_rechargeOrder.ALL = field.NewAsterisk(tableName)
+	_rechargeOrder.RechargeOrderID = field.NewInt32(tableName, "recharge_order_id")
 	_rechargeOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_rechargeOrder.UserID = field.NewInt32(tableName, "user_id")
 	_rechargeOrder.Status = field.NewInt(tableName, "status")
@@ -34,6 +35,7 @@ func newRechargeOrder(db *gorm.DB) rechargeOrder {
 	_rechargeOrder.BundledAmount = field.NewInt32(tableName, "bundled_amount")
 	_rechargeOrder.CreatedAt = field.NewField(tableName, "created_at")
 	_rechargeOrder.UpdatedAt = field.NewField(tableName, "updated_at")
+	_rechargeOrder.PayAmount = field.NewInt32(tableName, "pay_amount")
 
 	_rechargeOrder.fillFieldMap()
 
@@ -43,14 +45,16 @@ func newRechargeOrder(db *gorm.DB) rechargeOrder {
 type rechargeOrder struct {
 	rechargeOrderDo rechargeOrderDo
 
-	ALL           field.Asterisk
-	OrderID       field.Int32
-	UserID        field.Int32
-	Status        field.Int   // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
-	Amount        field.Int32 // 实际支付金额
-	BundledAmount field.Int32 // 赠送金额
-	CreatedAt     field.Field
-	UpdatedAt     field.Field
+	ALL             field.Asterisk
+	RechargeOrderID field.Int32
+	OrderID         field.Int32
+	UserID          field.Int32
+	Status          field.Int   // 订单状态，1｜待支付，2｜支付完成，3｜支付取消
+	Amount          field.Int32 // 实际支付金额
+	BundledAmount   field.Int32 // 赠送金额
+	CreatedAt       field.Field
+	UpdatedAt       field.Field
+	PayAmount       field.Int32 // 订单支付金额
 
 	fieldMap map[string]field.Expr
 }
@@ -67,6 +71,7 @@ func (r rechargeOrder) As(alias string) *rechargeOrder {
 
 func (r *rechargeOrder) updateTableName(table string) *rechargeOrder {
 	r.ALL = field.NewAsterisk(table)
+	r.RechargeOrderID = field.NewInt32(table, "recharge_order_id")
 	r.OrderID = field.NewInt32(table, "order_id")
 	r.UserID = field.NewInt32(table, "user_id")
 	r.Status = field.NewInt(table, "status")
@@ -74,6 +79,7 @@ func (r *rechargeOrder) updateTableName(table string) *rechargeOrder {
 	r.BundledAmount = field.NewInt32(table, "bundled_amount")
 	r.CreatedAt = field.NewField(table, "created_at")
 	r.UpdatedAt = field.NewField(table, "updated_at")
+	r.PayAmount = field.NewInt32(table, "pay_amount")
 
 	r.fillFieldMap()
 
@@ -98,7 +104,8 @@ func (r *rechargeOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (r *rechargeOrder) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 7)
+	r.fieldMap = make(map[string]field.Expr, 9)
+	r.fieldMap["recharge_order_id"] = r.RechargeOrderID
 	r.fieldMap["order_id"] = r.OrderID
 	r.fieldMap["user_id"] = r.UserID
 	r.fieldMap["status"] = r.Status
@@ -106,6 +113,7 @@ func (r *rechargeOrder) fillFieldMap() {
 	r.fieldMap["bundled_amount"] = r.BundledAmount
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
+	r.fieldMap["pay_amount"] = r.PayAmount
 }
 
 func (r rechargeOrder) clone(db *gorm.DB) rechargeOrder {

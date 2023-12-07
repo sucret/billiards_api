@@ -27,12 +27,16 @@ func newTableOrder(db *gorm.DB) tableOrder {
 
 	tableName := _tableOrder.tableOrderDo.TableName()
 	_tableOrder.ALL = field.NewAsterisk(tableName)
+	_tableOrder.TableOrderID = field.NewInt32(tableName, "table_order_id")
 	_tableOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_tableOrder.UserID = field.NewInt32(tableName, "user_id")
 	_tableOrder.Status = field.NewInt(tableName, "status")
 	_tableOrder.ShopID = field.NewInt32(tableName, "shop_id")
 	_tableOrder.TableID = field.NewInt32(tableName, "table_id")
+	_tableOrder.CouponID = field.NewInt32(tableName, "coupon_id")
+	_tableOrder.UserCouponID = field.NewInt32(tableName, "user_coupon_id")
 	_tableOrder.Amount = field.NewInt32(tableName, "amount")
+	_tableOrder.PayAmount = field.NewInt32(tableName, "pay_amount")
 	_tableOrder.CreatedAt = field.NewField(tableName, "created_at")
 	_tableOrder.UpdatedAt = field.NewField(tableName, "updated_at")
 	_tableOrder.StartedAt = field.NewField(tableName, "started_at")
@@ -48,12 +52,16 @@ type tableOrder struct {
 	tableOrderDo tableOrderDo
 
 	ALL          field.Asterisk
+	TableOrderID field.Int32
 	OrderID      field.Int32
 	UserID       field.Int32
 	Status       field.Int // 订单状态，1｜待支付，2｜支付完成，3｜已退款
 	ShopID       field.Int32
 	TableID      field.Int32
-	Amount       field.Int32 // 金额
+	CouponID     field.Int32 // 优惠券ID
+	UserCouponID field.Int32 // 用户优惠券ID
+	Amount       field.Int32 // 订单推过押金之后的金额，在结束订单的时候回写
+	PayAmount    field.Int32 // 订单支付金额
 	CreatedAt    field.Field // 创建时间
 	UpdatedAt    field.Field // 更新时间
 	StartedAt    field.Field // 支付时间
@@ -75,12 +83,16 @@ func (t tableOrder) As(alias string) *tableOrder {
 
 func (t *tableOrder) updateTableName(table string) *tableOrder {
 	t.ALL = field.NewAsterisk(table)
+	t.TableOrderID = field.NewInt32(table, "table_order_id")
 	t.OrderID = field.NewInt32(table, "order_id")
 	t.UserID = field.NewInt32(table, "user_id")
 	t.Status = field.NewInt(table, "status")
 	t.ShopID = field.NewInt32(table, "shop_id")
 	t.TableID = field.NewInt32(table, "table_id")
+	t.CouponID = field.NewInt32(table, "coupon_id")
+	t.UserCouponID = field.NewInt32(table, "user_coupon_id")
 	t.Amount = field.NewInt32(table, "amount")
+	t.PayAmount = field.NewInt32(table, "pay_amount")
 	t.CreatedAt = field.NewField(table, "created_at")
 	t.UpdatedAt = field.NewField(table, "updated_at")
 	t.StartedAt = field.NewField(table, "started_at")
@@ -110,13 +122,17 @@ func (t *tableOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *tableOrder) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 11)
+	t.fieldMap = make(map[string]field.Expr, 15)
+	t.fieldMap["table_order_id"] = t.TableOrderID
 	t.fieldMap["order_id"] = t.OrderID
 	t.fieldMap["user_id"] = t.UserID
 	t.fieldMap["status"] = t.Status
 	t.fieldMap["shop_id"] = t.ShopID
 	t.fieldMap["table_id"] = t.TableID
+	t.fieldMap["coupon_id"] = t.CouponID
+	t.fieldMap["user_coupon_id"] = t.UserCouponID
 	t.fieldMap["amount"] = t.Amount
+	t.fieldMap["pay_amount"] = t.PayAmount
 	t.fieldMap["created_at"] = t.CreatedAt
 	t.fieldMap["updated_at"] = t.UpdatedAt
 	t.fieldMap["started_at"] = t.StartedAt

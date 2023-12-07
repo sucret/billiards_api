@@ -34,5 +34,15 @@ func setClientRoute(r *gin.Engine) {
 		clientRouter.GET("/recharge/order/create", api.RechargeOrderApi.Create)
 		clientRouter.GET("/recharge/order/pay-result", api.RechargeOrderApi.PayResult)
 		clientRouter.GET("/recharge/price", api.RechargeOrderApi.Price)
+
+		// 优惠券
+		clientRouter.GET("/coupon/list", api.CouponApi.List)
+
+		// 用户优惠券
+		clientRouter.GET("/user/coupon/list", api.UserCouponApi.List)
+
+		// 统一下单接口
+		clientRouter.POST("/order/create", api.OrderApi.Create)
+		clientRouter.GET("/order/pay-result", api.OrderApi.PayResult)
 	}
 }
