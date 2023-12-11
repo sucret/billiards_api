@@ -142,7 +142,7 @@ func generateTable() {
 	g.GenerateModel("table", []gen.ModelOpt{
 		gen.FieldRelate(field.HasMany, "TerminalList", terminal, &field.RelateConfig{GORMTag: "hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
 
-		gen.FieldRelate(field.HasOne, "Shop", shop, &field.RelateConfig{GORMTag: "hasone:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
+		gen.FieldRelate(field.BelongsTo, "Shop", shop, &field.RelateConfig{GORMTag: "belongsto:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
 	}...)
 
 	g.GenerateModel("table_order", []gen.ModelOpt{
@@ -155,7 +155,7 @@ func generateTable() {
 	}...)
 
 	g.GenerateModel("user_coupon", []gen.ModelOpt{
-		gen.FieldRelate(field.HasOne, "Coupon", coupon, &field.RelateConfig{GORMTag: "hasone:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID"}),
+		gen.FieldRelate(field.BelongsTo, "Coupon", coupon, &field.RelateConfig{GORMTag: "belongsto:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)
