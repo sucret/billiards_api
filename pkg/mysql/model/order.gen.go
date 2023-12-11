@@ -10,9 +10,9 @@ const TableNameOrder = "order"
 type Order struct {
 	OrderID   int32 `gorm:"column:order_id;type:int(11);primaryKey;autoIncrement:true" json:"order_id"`
 	UserID    int32 `gorm:"column:user_id;type:int(11)" json:"user_id"`
+	Status    int   `gorm:"column:status;type:tinyint(4);not null;default:1" json:"status"` // 订单状态，1｜待支付，2｜支付成功
 	CreatedAt Time  `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt Time  `gorm:"column:updated_at;type:datetime" json:"updated_at"`
-	Status    int   `gorm:"column:status;type:tinyint(4);not null;default:1" json:"status"` // 订单状态，1｜待支付，2｜支付成功
 }
 
 // TableName Order's table name

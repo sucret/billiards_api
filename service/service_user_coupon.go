@@ -17,6 +17,30 @@ var UserCouponService = &userCouponService{
 	db: mysql.GetDB(),
 }
 
+func (u *userCouponService) disable(db *gorm.DB, userCouponId int32) (err error) {
+	userCoupon := model.UserCoupon{}
+
+	if err = db.Where("user_coupon_id = ? AND status = ?", userCouponId, model.UserCouponStatusNormal).
+		First(&userCoupon).Error; err != nil {
+		err = errors.New("未查询到优惠券信息")
+		return
+	}
+
+	userCoupon.Status = model.UserCouponStatusCancel
+	err = db.Save(&userCoupon).Error
+	return
+}
+
+func (u *userCouponService) GetByID(userCouponId int32) (userCoupon model.UserCoupon, err error) {
+	if err = u.db.Where("user_coupon_id = ?", userCouponId).
+		First(&userCoupon).Error; err != nil {
+		err = errors.New("未查到该优惠券")
+		return
+	}
+
+	return
+}
+
 // 使用优惠券
 func (u *userCouponService) Use(db *gorm.DB, userCouponId, userId int32) (userCoupon model.UserCoupon, err error) {
 	if err = db.Where("user_coupon_id = ? AND status = ? AND user_id = ?", userCouponId, model.UserCouponStatusNormal, userId).

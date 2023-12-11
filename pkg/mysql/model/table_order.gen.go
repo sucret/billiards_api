@@ -8,23 +8,22 @@ const TableNameTableOrder = "table_order"
 
 // TableOrder mapped from table <table_order>
 type TableOrder struct {
-	TableOrderID     int32          `gorm:"column:table_order_id;type:int(11);primaryKey;autoIncrement:true" json:"table_order_id"`
-	OrderID          int32          `gorm:"column:order_id;type:int(11);not null" json:"order_id"`
-	UserID           int32          `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
-	Status           int            `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
-	ShopID           int32          `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`
-	TableID          int32          `gorm:"column:table_id;type:int(11);not null" json:"table_id"`
-	CouponID         int32          `gorm:"column:coupon_id;type:int(11);not null" json:"coupon_id"`                              // 优惠券ID
-	UserCouponID     int32          `gorm:"column:user_coupon_id;type:int(11);not null" json:"user_coupon_id"`                    // 用户优惠券ID
-	Amount           int32          `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 订单推过押金之后的金额，在结束订单的时候回写
-	PayAmount        int32          `gorm:"column:pay_amount;type:int(11);not null" json:"pay_amount"`                            // 订单支付金额
-	CreatedAt        Time           `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"` // 创建时间
-	UpdatedAt        Time           `gorm:"column:updated_at;type:datetime" json:"updated_at"`                                    // 更新时间
-	StartedAt        Time           `gorm:"column:started_at;type:datetime" json:"started_at"`                                    // 支付时间
-	TerminatedAt     Time           `gorm:"column:terminated_at;type:datetime" json:"terminated_at"`                              // 终止时间
-	Price            int32          `gorm:"column:price;type:int(11);not null" json:"price"`                                      // 价格
-	Table            Table          `gorm:"belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"table"`
-	PaymentOrderList []PaymentOrder `gorm:"hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID" json:"payment_order_list"`
+	TableOrderID int32 `gorm:"column:table_order_id;type:int(11);primaryKey;autoIncrement:true" json:"table_order_id"`
+	OrderID      int32 `gorm:"column:order_id;type:int(11);not null" json:"order_id"`
+	UserID       int32 `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
+	Status       int   `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 订单状态，1｜待支付，2｜支付完成，3｜已退款
+	ShopID       int32 `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`
+	TableID      int32 `gorm:"column:table_id;type:int(11);not null" json:"table_id"`
+	CouponID     int32 `gorm:"column:coupon_id;type:int(11);not null" json:"coupon_id"`                              // 优惠券ID
+	UserCouponID int32 `gorm:"column:user_coupon_id;type:int(11);not null" json:"user_coupon_id"`                    // 用户优惠券ID
+	Amount       int32 `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 订单推过押金之后的金额，在结束订单的时候回写
+	PayAmount    int32 `gorm:"column:pay_amount;type:int(11);not null" json:"pay_amount"`                            // 订单支付金额
+	CreatedAt    Time  `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"` // 创建时间
+	UpdatedAt    Time  `gorm:"column:updated_at;type:datetime" json:"updated_at"`                                    // 更新时间
+	StartedAt    Time  `gorm:"column:started_at;type:datetime" json:"started_at"`                                    // 支付时间
+	TerminatedAt Time  `gorm:"column:terminated_at;type:datetime" json:"terminated_at"`                              // 终止时间
+	Price        int32 `gorm:"column:price;type:int(11);not null" json:"price"`                                      // 价格
+	Table        Table `gorm:"belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"table"`
 }
 
 // TableName TableOrder's table name

@@ -9,6 +9,10 @@ import (
 	"testing"
 )
 
+func TestOrderDetail(t *testing.T) {
+	_, _ = service.OrderService.Detail(60, 3)
+}
+
 // 测试创建优惠券
 func TestCreateOrder(t *testing.T) {
 	var form request.OrderCreate

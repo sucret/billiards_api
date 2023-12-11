@@ -17,7 +17,7 @@ type Table struct {
 	ActivatedAt  Time       `gorm:"column:activated_at;type:datetime" json:"activated_at"` // 开台时间，结束之后清零
 	CreatedAt    Time       `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	TerminalList []Terminal `gorm:"hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID" json:"terminal_list"`
-	Shop         Shop       `gorm:"belongsto:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID" json:"shop"`
+	Shop         Shop       `gorm:"hasone:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID" json:"shop"`
 }
 
 // TableName Table's table name

@@ -44,5 +44,8 @@ func setClientRoute(r *gin.Engine) {
 		// 统一下单接口
 		clientRouter.POST("/order/create", api.OrderApi.Create)
 		clientRouter.GET("/order/pay-result", api.OrderApi.PayResult)
+		clientRouter.GET("/order/terminate", api.OrderApi.Terminate)
+		clientRouter.GET("/order/detail", api.OrderApi.Detail)
+		clientRouter.GET("/order/renewal", api.OrderApi.Renewal)
 	}
 }

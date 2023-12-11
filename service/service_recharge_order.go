@@ -43,7 +43,7 @@ func (r *rechargeOrderService) PayResult(orderId, userId int32) (resp response.R
 	return
 }
 
-func (r *rechargeOrderService) Create(tx *gorm.DB, rechargeAmountType int, userId, orderId int32) (
+func (r *rechargeOrderService) create(tx *gorm.DB, rechargeAmountType int, userId, orderId int32) (
 	rechargeOrder model.RechargeOrder, err error) {
 
 	conf := config.GetConfig().RechargeAmount
@@ -72,7 +72,7 @@ func (r *rechargeOrderService) Create(tx *gorm.DB, rechargeAmountType int, userI
 }
 
 // 订单支付成功回调
-func (r *rechargeOrderService) PaySuccess(db *gorm.DB, order *model.RechargeOrder) (err error) {
+func (r *rechargeOrderService) paySuccess(db *gorm.DB, order *model.RechargeOrder) (err error) {
 	// 查询订单
 	//if err = r.db.Where("order_id = ?", orderId).Find(&order).Error; err != nil {
 	//	fmt.Println(err)

@@ -4,7 +4,6 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
-	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"errors"
@@ -54,7 +53,6 @@ func (s *shopService) List() (list []*response.Shop) {
 		}
 	}
 
-	tool.Dump(list)
 	return
 }
 

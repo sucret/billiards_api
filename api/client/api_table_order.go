@@ -30,13 +30,13 @@ func (*tableOrderApi) Terminate(c *gin.Context) {
 
 func (*tableOrderApi) Detail(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.GetString("userId"))
-	tableOrderId, err := strconv.Atoi(c.Query("table_order_id"))
+	orderId, err := strconv.Atoi(c.Query("order_id"))
 	if err != nil {
 		response.BusinessFail(c, "参数错误")
 		return
 	}
 
-	order, err := service.TableOrderService.Detail(userId, tableOrderId)
+	order, err := service.TableOrderService.Detail(userId, orderId)
 
 	if err != nil {
 		response.BusinessFail(c, err.Error())

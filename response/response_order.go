@@ -35,3 +35,9 @@ type OrderResp struct {
 	NeedWxPay bool                                    `json:"need_wx_pay"`
 	//Payment
 }
+
+type OrderDetailResp struct {
+	Order            model.Order `json:"order"`
+	TableOrder       OrderDetail `json:"table_order"`
+	PaymentOrderList []model.PaymentOrder
+}

@@ -31,6 +31,7 @@ func newCouponOrder(db *gorm.DB) couponOrder {
 	_couponOrder.OrderID = field.NewInt32(tableName, "order_id")
 	_couponOrder.CouponID = field.NewInt32(tableName, "coupon_id")
 	_couponOrder.PayAmount = field.NewInt32(tableName, "pay_amount")
+	_couponOrder.UserCouponID = field.NewInt32(tableName, "user_coupon_id")
 	_couponOrder.Status = field.NewInt(tableName, "status")
 	_couponOrder.UserID = field.NewInt32(tableName, "user_id")
 	_couponOrder.CreatedAt = field.NewField(tableName, "created_at")
@@ -49,6 +50,7 @@ type couponOrder struct {
 	OrderID       field.Int32
 	CouponID      field.Int32
 	PayAmount     field.Int32 // 订单支付金额
+	UserCouponID  field.Int32
 	Status        field.Int
 	UserID        field.Int32
 	CreatedAt     field.Field
@@ -73,6 +75,7 @@ func (c *couponOrder) updateTableName(table string) *couponOrder {
 	c.OrderID = field.NewInt32(table, "order_id")
 	c.CouponID = field.NewInt32(table, "coupon_id")
 	c.PayAmount = field.NewInt32(table, "pay_amount")
+	c.UserCouponID = field.NewInt32(table, "user_coupon_id")
 	c.Status = field.NewInt(table, "status")
 	c.UserID = field.NewInt32(table, "user_id")
 	c.CreatedAt = field.NewField(table, "created_at")
@@ -101,11 +104,12 @@ func (c *couponOrder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *couponOrder) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 8)
+	c.fieldMap = make(map[string]field.Expr, 9)
 	c.fieldMap["coupon_order_id"] = c.CouponOrderID
 	c.fieldMap["order_id"] = c.OrderID
 	c.fieldMap["coupon_id"] = c.CouponID
 	c.fieldMap["pay_amount"] = c.PayAmount
+	c.fieldMap["user_coupon_id"] = c.UserCouponID
 	c.fieldMap["status"] = c.Status
 	c.fieldMap["user_id"] = c.UserID
 	c.fieldMap["created_at"] = c.CreatedAt

@@ -40,3 +40,48 @@ func (*orderApi) PayResult(c *gin.Context) {
 
 	response.Success(c, resp)
 }
+
+// 终止订单
+func (*orderApi) Terminate(c *gin.Context) {
+	userId, _ := strconv.Atoi(c.GetString("userId"))
+	orderId, err := strconv.Atoi(c.Query("order_id"))
+	if err != nil {
+		response.ValidateFail(c, "参数错误")
+	}
+
+	err = service.OrderService.Terminate(int32(orderId), int32(userId))
+	if err != nil {
+		response.ValidateFail(c, err.Error())
+		return
+	}
+
+	response.Success(c, nil)
+}
+
+func (*orderApi) Detail(c *gin.Context) {
+	userId, _ := strconv.Atoi(c.GetString("userId"))
+	orderId, err := strconv.Atoi(c.Query("order_id"))
+	if err != nil {
+		response.ValidateFail(c, "参数错误")
+	}
+
+	detail, _ := service.OrderService.Detail(int32(orderId), int32(userId))
+
+	response.Success(c, detail)
+}
+
+// 订单续费
+func (*orderApi) Renewal(c *gin.Context) {
+	userId, _ := strconv.Atoi(c.GetString("userId"))
+	orderId, err := strconv.Atoi(c.Query("order_id"))
+	if err != nil {
+		response.ValidateFail(c, "参数错误")
+	}
+
+	resp, err := service.OrderService.Renewal(int32(orderId), int32(userId))
+	if err != nil {
+		response.ValidateFail(c, err.Error())
+	}
+
+	response.Success(c, resp)
+}

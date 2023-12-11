@@ -29,9 +29,9 @@ func newOrder(db *gorm.DB) order {
 	_order.ALL = field.NewAsterisk(tableName)
 	_order.OrderID = field.NewInt32(tableName, "order_id")
 	_order.UserID = field.NewInt32(tableName, "user_id")
+	_order.Status = field.NewInt(tableName, "status")
 	_order.CreatedAt = field.NewField(tableName, "created_at")
 	_order.UpdatedAt = field.NewField(tableName, "updated_at")
-	_order.Status = field.NewInt(tableName, "status")
 
 	_order.fillFieldMap()
 
@@ -44,9 +44,9 @@ type order struct {
 	ALL       field.Asterisk
 	OrderID   field.Int32
 	UserID    field.Int32
+	Status    field.Int // 订单状态，1｜待支付，2｜支付成功
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	Status    field.Int // 订单状态，1｜待支付，2｜支付成功
 
 	fieldMap map[string]field.Expr
 }
@@ -65,9 +65,9 @@ func (o *order) updateTableName(table string) *order {
 	o.ALL = field.NewAsterisk(table)
 	o.OrderID = field.NewInt32(table, "order_id")
 	o.UserID = field.NewInt32(table, "user_id")
+	o.Status = field.NewInt(table, "status")
 	o.CreatedAt = field.NewField(table, "created_at")
 	o.UpdatedAt = field.NewField(table, "updated_at")
-	o.Status = field.NewInt(table, "status")
 
 	o.fillFieldMap()
 
@@ -93,9 +93,9 @@ func (o *order) fillFieldMap() {
 	o.fieldMap = make(map[string]field.Expr, 5)
 	o.fieldMap["order_id"] = o.OrderID
 	o.fieldMap["user_id"] = o.UserID
+	o.fieldMap["status"] = o.Status
 	o.fieldMap["created_at"] = o.CreatedAt
 	o.fieldMap["updated_at"] = o.UpdatedAt
-	o.fieldMap["status"] = o.Status
 }
 
 func (o order) clone(db *gorm.DB) order {

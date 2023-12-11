@@ -4,6 +4,7 @@ import (
 	"billiards/pkg/log"
 	"billiards/pkg/tool"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,12 @@ type Payment struct {
 	mchApiV3Key         string // 商户APIv3密钥
 	mchCertSerialNumber string // 商户证书序列号
 	mchCertKeyFile      string // 证书文件
+}
+
+// 附加数据，支付成功的时候会原样返回
+type Attach struct {
+	OrderId   int32 `json:"order_id"`
+	IsRenewal bool  `json:"is_renewal"`
 }
 
 func NewPayment() (p *Payment) {
@@ -118,19 +125,24 @@ func (p *Payment) Refund(amount, total int32, transactionId, outTradeNo, outRefu
 }
 
 // 生成小程序预支付订单（用于前端调起微信支付）
-func (p *Payment) GetPrepayBill(openId, description, outTradeNo string, amount int32) (
+func (p *Payment) GetPrepayBill(openId, description, outTradeNo string, amount int32, attach *Attach) (
 	res *jsapi.PrepayWithRequestPaymentResponse, err error) {
 	client := p.getClient()
 	svc := jsapi.JsapiApiService{Client: client}
 
 	ctx := context.Background()
 
+	jsonAttach, err := json.Marshal(attach)
+	if err != nil {
+		err = errors.New("attach转换失败，" + err.Error())
+		return
+	}
 	param := jsapi.PrepayRequest{
 		Appid:       core.String(p.appId),
 		Mchid:       core.String(p.mchId),
 		Description: core.String(description),
 		OutTradeNo:  core.String(outTradeNo),
-		Attach:      core.String(""),
+		Attach:      core.String(string(jsonAttach)),
 		NotifyUrl:   core.String(p.notifyUrl),
 		Amount: &jsapi.Amount{
 			Total: core.Int64(int64(amount)),

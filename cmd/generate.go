@@ -142,12 +142,12 @@ func generateTable() {
 	g.GenerateModel("table", []gen.ModelOpt{
 		gen.FieldRelate(field.HasMany, "TerminalList", terminal, &field.RelateConfig{GORMTag: "hasmany:terminal;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
 
-		gen.FieldRelate(field.BelongsTo, "Shop", shop, &field.RelateConfig{GORMTag: "belongsto:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
+		gen.FieldRelate(field.HasOne, "Shop", shop, &field.RelateConfig{GORMTag: "hasone:shop;foreignKey:ShopID;joinForeignKey:ShopID;joinReferences:ShopID"}),
 	}...)
 
 	g.GenerateModel("table_order", []gen.ModelOpt{
 		gen.FieldRelate(field.BelongsTo, "Table", table, &field.RelateConfig{GORMTag: "belongsto:table;foreignKey:TableID;joinForeignKey:TableID;joinReferences:TableID"}),
-		gen.FieldRelate(field.HasMany, "PaymentOrderList", paymentOrder, &field.RelateConfig{GORMTag: "hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
+		//gen.FieldRelate(field.HasMany, "PaymentOrderList", paymentOrder, &field.RelateConfig{GORMTag: "hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
 	}...)
 
 	g.GenerateModel("recharge_order", []gen.ModelOpt{
