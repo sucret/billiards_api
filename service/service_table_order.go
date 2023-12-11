@@ -296,8 +296,7 @@ func (o *tableOrderService) create(tx *gorm.DB, tableId, userId, orderId, coupon
 
 	// 1、判断球桌是否可用
 	table := model.Table{}
-	if err = tx.Set("gorm:query_option", "FOR UPDATE").
-		Preload("Shop").
+	if err = tx.Preload("Shop").
 		Where("table_id = ? AND status = ?", tableId, model.TableStatusClose).
 		First(&table).Error; err != nil {
 
@@ -487,7 +486,7 @@ func (o *tableOrderService) paySuccess(db *gorm.DB, order *model.TableOrder) (er
 	}
 
 	// 开台
-	table, err := TableService.Enable(order.TableID)
+	table, err := TableService.Enable(db, order.TableID)
 	if err != nil {
 		log.GetLogger().Error("pay_notify",
 			zap.String("msg", "开台失败"),

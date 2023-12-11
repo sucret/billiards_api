@@ -5,7 +5,6 @@ import (
 	"billiards/response"
 	"billiards/service"
 	"github.com/gin-gonic/gin"
-	"strconv"
 )
 
 type tableApi struct{}
@@ -29,17 +28,17 @@ func (*tableApi) Save(c *gin.Context) {
 }
 
 func (*tableApi) Enable(c *gin.Context) {
-	tableId, err := strconv.Atoi(c.Query("table_id"))
-	if err != nil {
-		response.BusinessFail(c, "参数错误")
-		return
-	}
-
-	table, err := service.TableService.Enable(int32(tableId))
-	if err != nil {
-		response.BusinessFail(c, err.Error())
-		return
-	}
-
-	response.Success(c, table)
+	//tableId, err := strconv.Atoi(c.Query("table_id"))
+	//if err != nil {
+	//	response.BusinessFail(c, "参数错误")
+	//	return
+	//}
+	//
+	//table, err := service.TableService.Enable(int32(tableId))
+	//if err != nil {
+	//	response.BusinessFail(c, err.Error())
+	//	return
+	//}
+	//
+	//response.Success(c, table)
 }

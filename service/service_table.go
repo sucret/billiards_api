@@ -102,20 +102,18 @@ func (t *tableService) Disable(tx *gorm.DB, tableId int32) (table model.Table, e
 }
 
 // 开台
-func (t *tableService) Enable(tableId int32) (table model.Table, err error) {
+func (t *tableService) Enable(db *gorm.DB, tableId int32) (table model.Table, err error) {
 	// 操作设备加锁
-	t.lock.Lock()
-	defer t.lock.Unlock()
+	//t.lock.Lock()
+	//defer t.lock.Unlock()
 
-	tx := t.db.Begin()
+	//tx := t.db.Begin()
 
-	if err = tx.Set("gorm:query_option", "FOR UPDATE").
-		Preload("TerminalList").
+	if err = db.Preload("TerminalList").
 		Where("table_id = ?", tableId).
 		First(&table).Error; err != nil {
 
 		err = errors.New("球桌不存在")
-		tx.Rollback()
 		return
 	}
 
@@ -139,12 +137,10 @@ func (t *tableService) Enable(tableId int32) (table model.Table, err error) {
 
 	table.ActivatedAt = model.Time(time.Now())
 	table.Status = model.TableStatusOpen
-	if err = tx.Save(table).Error; err != nil {
+	if err = db.Save(table).Error; err != nil {
 		err = errors.New("开启失败")
-		tx.Rollback()
 		return
 	}
 
-	tx.Commit()
 	return
 }
