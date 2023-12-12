@@ -15,7 +15,7 @@ type UserCoupon struct {
 	ShopID       int32  `gorm:"column:shop_id;type:int(11);not null" json:"shop_id"`  // 冗余coupon表店铺id
 	CreatedAt    Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    Time   `gorm:"column:updated_at;type:datetime" json:"updated_at"`
-	Coupon       Coupon `gorm:"hasone:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID" json:"coupon"`
+	Coupon       Coupon `gorm:"belongsto:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID" json:"coupon"`
 }
 
 // TableName UserCoupon's table name

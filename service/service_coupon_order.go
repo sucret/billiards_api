@@ -40,7 +40,7 @@ func (*couponOrderService) settlement(couponOrder *model.CouponOrder) (amount in
 
 func (*couponOrderService) paySuccess(db *gorm.DB, order *model.CouponOrder) (err error) {
 	// 发放优惠券
-	userCoupon, err := UserCouponService.HandOut(order.UserID, order.CouponID)
+	userCoupon, err := UserCouponService.HandOut(db, order.UserID, order.CouponID)
 
 	// 更新优惠券状态 回写发放记录id
 	order.UserCouponID = userCoupon.UserCouponID

@@ -54,6 +54,16 @@ func (o *tableOrderService) formatTableOrder(detail *response.OrderDetailResp) {
 
 	// 总时长 （当前支付的金额 / 单价 * 60）
 	tMinutes := float64(totalAmount) / float64(detail.TableOrder.Table.Price) * 60
+
+	// 如果有优惠券，则需要加上优惠券的时长
+	if detail.CouponOrder.CouponOrderID > 0 {
+		coupon, err := CouponService.GetById(detail.CouponOrder.CouponID)
+		if err != nil {
+			return
+		}
+		tMinutes = tMinutes + float64(coupon.Duration)
+	}
+
 	detail.TableOrder.TotalMinutes = int32(math.Ceil(tMinutes))
 
 	if detail.TableOrder.Status == model.OrderStatusPaySuccess {

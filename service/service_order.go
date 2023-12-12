@@ -6,7 +6,6 @@ import (
 	"billiards/request"
 	"billiards/response"
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -78,6 +77,7 @@ func (o *orderService) Detail(orderId, userId int32) (detail response.OrderDetai
 	detail.Order = order.Order
 	detail.TableOrder.TableOrder = order.TableOrder
 	detail.PaymentOrderList = order.PaymentOrderList
+	detail.CouponOrder = order.CouponOrder
 
 	TableOrderService.formatTableOrder(&detail)
 
@@ -111,7 +111,6 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 	if order.TableOrder.OrderID > 0 {
 		tableOrderAmount, err = TableOrderService.settlement(&order.TableOrder)
 		if err != nil {
-			fmt.Println(1)
 			return
 		}
 		orderAmount = orderAmount + tableOrderAmount
@@ -121,7 +120,6 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 	if order.CouponOrder.OrderID > 0 {
 		couponAmount, err = CouponOrderService.settlement(&order.CouponOrder)
 		if err != nil {
-			fmt.Println(2)
 			return
 		}
 		orderAmount = orderAmount + couponAmount

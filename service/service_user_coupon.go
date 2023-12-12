@@ -77,7 +77,7 @@ func (u *userCouponService) PaySuccess() {
 }
 
 // 优惠券列表
-func (u *userCouponService) List(userId, couponId int32, status int) (list []model.UserCoupon, err error) {
+func (u *userCouponService) List(userId, couponId, shopId int32, status int) (list []model.UserCoupon, err error) {
 	query := u.db.Preload("Coupon")
 
 	if userId > 0 {
@@ -92,6 +92,10 @@ func (u *userCouponService) List(userId, couponId int32, status int) (list []mod
 		query = query.Where("coupon_id = ?", couponId)
 	}
 
+	if shopId > 0 {
+		query = query.Where("shop_id = ?", shopId)
+	}
+
 	if err = query.Order("user_coupon_id DESC").Find(&list).Error; err != nil {
 		return
 	}
@@ -100,7 +104,7 @@ func (u *userCouponService) List(userId, couponId int32, status int) (list []mod
 }
 
 // 发放优惠券
-func (u *userCouponService) HandOut(userId, couponId int32) (userCoupon model.UserCoupon, err error) {
+func (u *userCouponService) HandOut(db *gorm.DB, userId, couponId int32) (userCoupon model.UserCoupon, err error) {
 	// 获取优惠券信息
 	coupon, err := CouponService.GetById(couponId)
 	if err != nil {
@@ -114,7 +118,7 @@ func (u *userCouponService) HandOut(userId, couponId int32) (userCoupon model.Us
 		ShopID:   coupon.ShopID,
 	}
 
-	u.db.Save(&userCoupon)
+	db.Save(&userCoupon)
 
 	return
 }

@@ -37,7 +37,8 @@ type OrderResp struct {
 }
 
 type OrderDetailResp struct {
-	Order            model.Order `json:"order"`
-	TableOrder       OrderDetail `json:"table_order"`
+	Order            model.Order       `json:"order"`
+	TableOrder       OrderDetail       `json:"table_order"`
+	CouponOrder      model.CouponOrder `json:"coupon_order"`
 	PaymentOrderList []model.PaymentOrder
 }

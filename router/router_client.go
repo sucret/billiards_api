@@ -39,6 +39,9 @@ func setClientRoute(r *gin.Engine) {
 		clientRouter.GET("/coupon/list", api.CouponApi.List)
 
 		// 用户优惠券
+		clientRouter.GET("/user-coupon/get-by-shop", api.UserCouponApi.GetByShop)
+
+		// 用户优惠券
 		clientRouter.GET("/user/coupon/list", api.UserCouponApi.List)
 
 		// 统一下单接口
