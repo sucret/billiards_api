@@ -37,8 +37,14 @@ type OrderResp struct {
 }
 
 type OrderDetailResp struct {
-	Order            model.Order       `json:"order"`
-	TableOrder       OrderDetail       `json:"table_order"`
-	CouponOrder      model.CouponOrder `json:"coupon_order"`
-	PaymentOrderList []model.PaymentOrder
+	Order            model.Order          `json:"order"`
+	TableOrder       OrderDetail          `json:"table_order"`
+	CouponOrder      model.CouponOrder    `json:"coupon_order"`
+	Coupon           model.Coupon         `json:"coupon"`
+	PaymentOrderList []model.PaymentOrder `json:"payment_order_list"`
+}
+
+type OrderListResp struct {
+	List  []model.Order `json:"list"`
+	Total int64         `json:"total"`
 }

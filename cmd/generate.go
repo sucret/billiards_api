@@ -132,6 +132,9 @@ func generateTable() {
 	//shop := g.GenerateModel("shop")
 	table := g.GenerateModel("table")
 	paymentOrder := g.GenerateModel("payment_order")
+	tableOrder := g.GenerateModel("table_order")
+	couponOrder := g.GenerateModel("coupon_order")
+	refundOrder := g.GenerateModel("refund_order")
 
 	coupon := g.GenerateModel("coupon")
 
@@ -156,6 +159,20 @@ func generateTable() {
 
 	g.GenerateModel("user_coupon", []gen.ModelOpt{
 		gen.FieldRelate(field.BelongsTo, "Coupon", coupon, &field.RelateConfig{GORMTag: "belongsto:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID"}),
+	}...)
+
+	g.GenerateModel("coupon_order", []gen.ModelOpt{
+		gen.FieldRelate(field.BelongsTo, "Coupon", coupon, &field.RelateConfig{GORMTag: "belongsto:coupon;foreignKey:CouponID;joinForeignKey:CouponID;joinReferences:CouponID"}),
+	}...)
+
+	g.GenerateModel("order", []gen.ModelOpt{
+		gen.FieldRelate(field.HasOne, "TableOrder", tableOrder, &field.RelateConfig{GORMTag: "hasone:table_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
+		gen.FieldRelate(field.HasOne, "CouponOrder", couponOrder, &field.RelateConfig{GORMTag: "hasone:coupon_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
+		gen.FieldRelate(field.HasMany, "PaymentOrderList", paymentOrder, &field.RelateConfig{GORMTag: "hasmany:payment_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID"}),
+	}...)
+
+	g.GenerateModel("payment_order", []gen.ModelOpt{
+		gen.FieldRelate(field.HasMany, "RefundOrderList", refundOrder, &field.RelateConfig{GORMTag: "hasmany:refund_order;foreignKey:PaymentOrderID;joinForeignKey:PaymentOrderID;joinReferences:PaymentOrderID"}),
 	}...)
 
 	g.ApplyBasic(allModel...)

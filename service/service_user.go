@@ -4,6 +4,8 @@ import (
 	"billiards/pkg/log"
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
+	"billiards/pkg/tool"
+	"billiards/request"
 	"errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -17,8 +19,29 @@ var UserService = &userService{
 	db: mysql.GetDB(),
 }
 
+// 更新用户信息
+func (u *userService) Save(userId int32, form request.SaveUser) (user model.User, err error) {
+	err = u.db.Where("user_id = ?", userId).First(&user).Error
+	if err != nil {
+		err = errors.New("用户不存在")
+		return
+	}
+
+	if form.Avatar != "" {
+		user.Avatar = form.Avatar
+	}
+
+	if form.Nickname != "" {
+		user.Nickname = form.Nickname
+	}
+
+	err = u.db.Save(&user).Error
+	return
+}
+
 func (u *userService) Login(code string) (user *model.User, err error) {
 	resp, err := WeApp.Login(code)
+	tool.Dump(resp)
 	if err != nil {
 		return
 	}
@@ -26,9 +49,12 @@ func (u *userService) Login(code string) (user *model.User, err error) {
 	if err = u.db.Where("open_id = ?", resp.OpenId).First(&user).Error; err != nil {
 		// 注册新用户
 		user.OpenID = resp.OpenId
+		user.SessionKey = resp.SessionKey
 		u.db.Create(user)
 	}
 
+	user.SessionKey = resp.SessionKey
+	u.db.Save(&user)
 	return
 }
 

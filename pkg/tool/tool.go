@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gogf/gf/util/gconv"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -58,4 +59,21 @@ func GenerateOrderNum() (orderNum string) {
 	orderNum = time.Now().Format("20060102150405") + fmt.Sprintf("%0*d", 6, num)
 
 	return
+}
+
+func Distance(lat1 float64, lon1 float64, lat2 float64, lon2 float64) float64 {
+	const R = 6378.1                // 地球平均半径，单位为千米
+	radLat1 := math.Pi * lat1 / 180 // 将角度转换成弧度
+	radLon1 := math.Pi * lon1 / 180
+	radLat2 := math.Pi * lat2 / 180
+	radLon2 := math.Pi * lon2 / 180
+
+	dLat := radLat2 - radLat1
+	dLon := radLon2 - radLon1
+
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(radLat1)*math.Cos(radLat2)*math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	distance := R * c
+
+	return distance * 1000 // 返回结果单位为米
 }

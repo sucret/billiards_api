@@ -11,3 +11,15 @@ type OrderCreate struct {
 func (OrderCreate) GetMessages() ValidatorMessages {
 	return ValidatorMessages{}
 }
+
+type OrderList struct {
+	Page     int `form:"page" json:"page" binding:"required"`
+	PageSize int `form:"page_size" json:"page_size" binding:"required"`
+}
+
+func (OrderList) GetMessages() ValidatorMessages {
+	return ValidatorMessages{
+		"page.required":      "页码不能为空",
+		"page_size.required": "分页条数不能为空",
+	}
+}

@@ -15,6 +15,8 @@ func setClientRoute(r *gin.Engine) {
 	clientRouter := r.Group("/c").
 		Use(middleware.JWTAuth(service.AppClientName), gin.Logger(), middleware.CustomRecovery())
 	{
+		clientRouter.POST("/user/save", api.UserApi.Save)
+
 		// 店铺
 		clientRouter.GET("/shop/list", api.ShopApi.List)
 		clientRouter.GET("/shop/detail", api.ShopApi.Detail)

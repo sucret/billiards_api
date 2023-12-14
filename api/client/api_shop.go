@@ -12,7 +12,10 @@ type shopApi struct{}
 var ShopApi = new(shopApi)
 
 func (*shopApi) List(c *gin.Context) {
-	list := service.ShopService.List()
+	latitude, _ := strconv.ParseFloat(c.Query("latitude"), 64)
+	longitude, _ := strconv.ParseFloat(c.Query("longitude"), 64)
+
+	list := service.ShopService.ListWithDistance(latitude, longitude)
 	response.Success(c, list)
 }
 

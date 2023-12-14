@@ -3,6 +3,7 @@ package service
 import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
+	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"errors"
@@ -24,6 +25,22 @@ type OrderInfo struct {
 	CouponOrder      model.CouponOrder
 	RechargeOrder    model.RechargeOrder
 	PaymentOrderList []model.PaymentOrder
+}
+
+func (o *orderService) List(form request.OrderList) (resp response.OrderListResp, err error) {
+	query := o.db.Preload("TableOrder").
+		Preload("TableOrder.Table").
+		Preload("TableOrder.Table.Shop").
+		Preload("PaymentOrderList").
+		Preload("CouponOrder").
+		Preload("CouponOrder.Coupon")
+
+	query.Model(&[]model.Order{}).Count(&resp.Total)
+
+	err = query.Order("order_id DESC").Offset((form.Page - 1) * form.PageSize).
+		Limit(form.PageSize).Find(&resp.List).Error
+
+	return
 }
 
 // 续费
@@ -69,11 +86,12 @@ func (o *orderService) Renewal(orderId, userId int32) (resp response.OrderResp, 
 // 订单详情
 func (o *orderService) Detail(orderId, userId int32) (detail response.OrderDetailResp, err error) {
 	order, _ := o.GetOrderInfo(o.db, orderId)
-	if order.UserID != userId {
+	if userId != -1 && order.UserID != userId {
 		err = errors.New("订单不存在")
 		return
 	}
 
+	tool.Dump(order)
 	detail.Order = order.Order
 	detail.TableOrder.TableOrder = order.TableOrder
 	detail.PaymentOrderList = order.PaymentOrderList
@@ -291,9 +309,9 @@ func (o *orderService) GetOrderInfo(db *gorm.DB, orderId int32) (order OrderInfo
 	}
 
 	db.Where("order_id = ?", orderId).First(&order.RechargeOrder)
-	db.Where("order_id = ?", orderId).First(&order.CouponOrder)
+	db.Where("order_id = ?", orderId).Preload("Coupon").First(&order.CouponOrder)
 	db.Where("order_id = ?", orderId).Preload("Table").Preload("Table.Shop").First(&order.TableOrder)
-	db.Where("order_id = ?", orderId).Find(&order.PaymentOrderList)
+	db.Where("order_id = ?", orderId).Preload("RefundOrderList").Find(&order.PaymentOrderList)
 
 	return
 }

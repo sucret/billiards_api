@@ -30,9 +30,10 @@ type PaymentOrder struct {
 		USERPAYING：用户支付中（付款码支付）
 		PAYERROR：支付失败(其他原因，如银行返回失败)
 	*/
-	TradeState string `gorm:"column:trade_state;type:char(12);not null" json:"trade_state"`
-	CreatedAt  Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt  Time   `gorm:"column:updated_at;type:datetime" json:"updated_at"`
+	TradeState      string        `gorm:"column:trade_state;type:char(12);not null" json:"trade_state"`
+	CreatedAt       Time          `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       Time          `gorm:"column:updated_at;type:datetime" json:"updated_at"`
+	RefundOrderList []RefundOrder `gorm:"hasmany:refund_order;foreignKey:PaymentOrderID;joinForeignKey:PaymentOrderID;joinReferences:PaymentOrderID" json:"refund_order_list"`
 }
 
 // TableName PaymentOrder's table name

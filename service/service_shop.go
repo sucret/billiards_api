@@ -4,12 +4,14 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
+	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
+	"math"
 )
 
 type shopService struct {
@@ -50,6 +52,23 @@ func (s *shopService) List() (list []*response.Shop) {
 		v.BilliardsPrice = 0
 		if len(v.TableList) > 0 {
 			v.BilliardsPrice = v.TableList[0].Price
+		}
+	}
+
+	return
+}
+
+func (s *shopService) ListWithDistance(lat, lng float64) (shopList []*response.Shop) {
+	shopList = s.List()
+
+	fmt.Println(lat, lng)
+
+	if lat > 0 && lng > 0 {
+		for _, v := range shopList {
+			fmt.Println(v.Latitude, v.Longitude, lat, lng)
+			if v.Latitude > 0 && v.Longitude > 0 {
+				v.Distance = math.Round(tool.Distance(lat, lng, v.Latitude, v.Longitude)/100) / 10
+			}
 		}
 	}
 

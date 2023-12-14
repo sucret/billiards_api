@@ -37,6 +37,7 @@ func newUser(db *gorm.DB) user {
 	_user.City = field.NewString(tableName, "city")
 	_user.Country = field.NewString(tableName, "country")
 	_user.UnionID = field.NewString(tableName, "union_id")
+	_user.SessionKey = field.NewString(tableName, "session_key")
 	_user.CreatedAt = field.NewField(tableName, "created_at")
 
 	_user.fillFieldMap()
@@ -47,18 +48,19 @@ func newUser(db *gorm.DB) user {
 type user struct {
 	userDo userDo
 
-	ALL       field.Asterisk
-	UserID    field.Int32
-	OpenID    field.String
-	Nickname  field.String
-	Wallet    field.Int32 // 账户余额
-	Avatar    field.String
-	Gender    field.Int // 性别 0：未知、1：男、2：女
-	Province  field.String
-	City      field.String
-	Country   field.String
-	UnionID   field.String
-	CreatedAt field.Field
+	ALL        field.Asterisk
+	UserID     field.Int32
+	OpenID     field.String
+	Nickname   field.String
+	Wallet     field.Int32 // 账户余额
+	Avatar     field.String
+	Gender     field.Int // 性别 0：未知、1：男、2：女
+	Province   field.String
+	City       field.String
+	Country    field.String
+	UnionID    field.String
+	SessionKey field.String
+	CreatedAt  field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -85,6 +87,7 @@ func (u *user) updateTableName(table string) *user {
 	u.City = field.NewString(table, "city")
 	u.Country = field.NewString(table, "country")
 	u.UnionID = field.NewString(table, "union_id")
+	u.SessionKey = field.NewString(table, "session_key")
 	u.CreatedAt = field.NewField(table, "created_at")
 
 	u.fillFieldMap()
@@ -108,7 +111,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 11)
+	u.fieldMap = make(map[string]field.Expr, 12)
 	u.fieldMap["user_id"] = u.UserID
 	u.fieldMap["open_id"] = u.OpenID
 	u.fieldMap["nickname"] = u.Nickname
@@ -119,6 +122,7 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["city"] = u.City
 	u.fieldMap["country"] = u.Country
 	u.fieldMap["union_id"] = u.UnionID
+	u.fieldMap["session_key"] = u.SessionKey
 	u.fieldMap["created_at"] = u.CreatedAt
 }
 
