@@ -1,10 +1,15 @@
 package api
 
 import (
+	"billiards/pkg/config"
+	"billiards/pkg/qiniu"
+	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"billiards/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"path"
 	"strconv"
 )
 
@@ -51,4 +56,21 @@ func (*userApi) Save(c *gin.Context) {
 	}
 
 	response.Success(c, list)
+}
+
+func (*userApi) UploadAvatar(c *gin.Context) {
+	header, err := c.FormFile("file")
+	if err != nil {
+		fmt.Println(err)
+	}
+	tool.Dump(header)
+	key := "avatar/" + tool.GenRandomString(32) + path.Ext(header.Filename)
+
+	err = qiniu.UploadFile(header, key)
+	if err != nil {
+		response.BusinessFail(c, err.Error())
+		return
+	}
+
+	response.Success(c, config.GetConfig().Qiniu.Domain+key)
 }

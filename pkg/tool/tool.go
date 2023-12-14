@@ -77,3 +77,14 @@ func Distance(lat1 float64, lon1 float64, lat2 float64, lon2 float64) float64 {
 
 	return distance * 1000 // 返回结果单位为米
 }
+
+func GenRandomString(n int) string {
+	var letters = []byte("abcdefghijklmnopqrstuvwxyz0123456789")
+	rand.Seed(time.Now().UnixNano())
+
+	str := make([]byte, n)
+	for i := range str {
+		str[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(str)
+}
