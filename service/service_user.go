@@ -75,7 +75,7 @@ func (u *userService) Recharge(db *gorm.DB, amount, userId int32) (user model.Us
 	return
 }
 
-// 用户钱包变更，如果
+// 用户钱包余额变更
 func (u *userService) ChangeWallet(db *gorm.DB, userId, amount int32) (err error) {
 	user := model.User{}
 	db.Where("user_id = ?", userId).First(&user)

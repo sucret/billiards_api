@@ -81,10 +81,9 @@ func (o *tableOrderService) formatTableOrder(detail *response.OrderDetailResp) {
 	}
 }
 
-// 终止订单
+// 终止开台订单
 func (o *tableOrderService) terminate(db *gorm.DB, tableOrder *model.TableOrder) (err error) {
 	// 关闭球桌
-	// todo
 	_, err = TableService.Disable(db, tableOrder.TableID)
 	if err != nil {
 		return
@@ -101,10 +100,12 @@ func (o *tableOrderService) terminate(db *gorm.DB, tableOrder *model.TableOrder)
 }
 
 // 结算订单，查看订单现在有多少钱
+// 返回的是减掉优惠券抵扣的时长
 func (o *tableOrderService) settlement(tableOrder *model.TableOrder) (amount int32, err error) {
+	// 结束时间
 	tableOrder.TerminatedAt = model.Time(time.Now())
 
-	// 时长
+	// 时长(分钟）
 	minutes := int32(time.Time(tableOrder.TerminatedAt).Sub(time.Time(tableOrder.StartedAt)).Minutes())
 
 	// 查看是否有用优惠券，如果用了，那就需要把优惠券的时长去掉再计算金额
@@ -297,7 +298,7 @@ func (o *tableOrderService) TimingCancel() {
 	}
 }
 
-// 创建子订单
+// 创建开台子订单
 func (o *tableOrderService) create(tx *gorm.DB, tableId, userId, orderId, couponId, userCouponId int32) (
 	tableOrder model.TableOrder, err error) {
 
@@ -323,19 +324,7 @@ func (o *tableOrderService) create(tx *gorm.DB, tableId, userId, orderId, coupon
 		return
 	}
 
-	// 3、计算订单接
-	totalAmount := table.Shop.Deposit
-	// 如果有优惠券，则需要加上优惠券的金额
-	//if couponId > 0 {
-	//	coupon, err := CouponService.GetById(couponId)
-	//	if err != nil {
-	//		return model.TableOrder{}, err
-	//	}
-	//	totalAmount = totalAmount + coupon.Price
-	//}
-
-	// 4、创建子订单
-	// 优惠券逻辑：
+	// 3、创建开台子订单
 	tableOrder = model.TableOrder{
 		OrderID:      orderId,
 		ShopID:       table.ShopID,
@@ -344,129 +333,18 @@ func (o *tableOrderService) create(tx *gorm.DB, tableId, userId, orderId, coupon
 		UserID:       userId,
 		CouponID:     couponId,
 		UserCouponID: userCouponId,
-		PayAmount:    totalAmount,
+		PayAmount:    table.Shop.Deposit,
 	}
 	if err = tx.Create(&tableOrder).Error; err != nil {
 		log.GetLogger().Error("create_order", zap.String("err_msg", err.Error()),
 			zap.Any("order", tableOrder))
 		err = errors.New("创建订单，请重试")
-		return
 	}
-
-	return
-}
-
-// 创建订单
-func (o *tableOrderService) Create_(tx *gorm.DB, tableId, userId, orderId int32) (resp response.TableOrderPrePayParam, err error) {
-	// todo 暂时先在创建订单的时候关闭过期的订单，后边需要移动到定时任务里边去
-	go o.TimingCancel()
-
-	// todo 这里的锁需要再斟酌一下，如果开启的话，那同时所有的球桌就只能有一个人下单（单服务器的情况下）
-	//o.lock.Lock()
-	//defer o.lock.Unlock()
-
-	order := model.TableOrder{}
-	//tx := o.db.Begin()
-
-	// 先查询出球桌，判断一下是否可以开台
-	table := model.Table{}
-	if err = tx.Set("gorm:query_option", "FOR UPDATE").
-		Preload("Shop").
-		Where("table_id = ? AND status = ?", tableId, model.TableStatusClose).
-		First(&table).Error; err != nil {
-
-		err = errors.New("当前球桌不可用，请更换其它球桌")
-		tx.Rollback()
-		return
-	}
-
-	// 需要判断这个球桌是否有支付中的订单(当前扫码用户的订单排除掉）
-	tmpOrder := model.TableOrder{}
-	tx.Where("table_id = ? AND status = ? AND user_id !=", tableId, model.OrderStatusDefault, userId).
-		First(&tmpOrder)
-	if tmpOrder.OrderID > 0 {
-		err = errors.New("当前球桌不可用，请更换其它球桌")
-		tx.Rollback()
-		return
-	}
-
-	// 创建订单
-	order = model.TableOrder{
-		ShopID:  table.ShopID,
-		TableID: table.TableID,
-		Status:  model.OrderStatusDefault,
-		UserID:  userId,
-	}
-
-	if err = tx.Create(&order).Error; err != nil {
-		log.GetLogger().Error("create_order", zap.String("err_msg", err.Error()),
-			zap.Any("order", order))
-
-		err = errors.New("创建订单，请重试")
-		tx.Rollback()
-		return
-	}
-	//
-	//wxPayAmount := table.Shop.Deposit
-	//walletPayAmount := int32(0)
-	//
-	//// 获取用户信息
-	//user, _ := UserService.GetByUserId(userId)
-	//
-	//// 判断用户余额是否够支付，如果够，则不用微信支付
-	//if user.Wallet >= table.Shop.Deposit {
-	//	wxPayAmount = 0
-	//	walletPayAmount = table.Shop.Deposit
-	//} else {
-	//	wxPayAmount = table.Shop.Deposit - user.Wallet
-	//	walletPayAmount = user.Wallet
-	//}
-
-	// 生成余额支付订单
-	//if walletPayAmount > 0 {
-	//	_, err = PaymentService.MakeWalletOrder(walletPayAmount, model.POTypeTable, order.OrderID, tx)
-	//	if err != nil {
-	//		log.GetLogger().Error("gen_payment_order_err", zap.String("msg", err.Error()))
-	//		tx.Rollback()
-	//		return response.TableOrderPrePayParam{}, err
-	//	}
-	//}
-
-	// 生成预支付的参数
-	//if wxPayAmount > 0 {
-	//	payment, err := PaymentService.MakeWechatPrepayOrder(
-	//		userId, wxPayAmount, model.POTypeTable, order.OrderID, table.Name)
-	//	if err != nil {
-	//		log.GetLogger().Error("gen_payment_order_err", zap.String("msg", err.Error()))
-	//		tx.Rollback()
-	//		return response.TableOrderPrePayParam{}, err
-	//	}
-	//	resp.NeedWxPay = true
-	//	resp.JsApi = payment
-	//}
-	//
-	//// 全部用钱包支付的话，订单直接改为支付成功
-	//if wxPayAmount == 0 {
-	//	_, err = TableOrderService.PaySuccess(order.OrderID, tx)
-	//}
-
-	resp.Order = &order
-
-	tx.Commit()
 
 	return
 }
 
 func (o *tableOrderService) paySuccess(db *gorm.DB, order *model.TableOrder) (err error) {
-	//err = db.Where("order_id = ? AND status = ?", orderId, model.OrderStatusDefault).
-	//	First(&order).Error
-	//
-	//if err != nil {
-	//	log.GetLogger().Error("pay_notify",
-	//		zap.String("err_msg", "没有查到订单或者订单支付状态已经完成"),
-	//		zap.Int32("order_id", orderId))
-	//	return
-	//}
 
 	order.Status = model.OrderStatusPaySuccess
 	order.StartedAt = model.Time(time.Now())
@@ -505,30 +383,6 @@ func (o *tableOrderService) paySuccess(db *gorm.DB, order *model.TableOrder) (er
 
 		return err
 	}
-	//_, err = PaymentService.MakeWalletOrderSuccess(db, orderId, order.UserID)
-	//if err != nil {
-	//	log.GetLogger().Error("pay_notify", zap.String("msg", err.Error()))
-	//	return model.TableOrder{}, err
-	//}
 
 	return
 }
-
-// 结算
-// 开始时间
-// 结束时间
-// 有没有优惠券
-// 优先使用优惠券
-// 剩余时间用押金结算
-// 返回应该退多少押金
-
-//func (o *tableOrderService) settlement(order *model.TableOrder) {
-//	// 计算
-//	minutes := time.Time(order.TerminatedAt).Sub(time.Time(order.StartedAt)).Minutes()
-//
-//	// 有优惠券的话，先减掉优惠券的时间
-//
-//	order.Amount = order.Table.Price / 60 * int32(minutes)
-//	//order.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", order.Table.Price/float64(60)*minutes), 64)
-//
-//}

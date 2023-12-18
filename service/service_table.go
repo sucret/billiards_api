@@ -77,20 +77,21 @@ func (t *tableService) Disable(tx *gorm.DB, tableId int32) (table model.Table, e
 		return
 	}
 
-	for _, val := range table.TerminalList {
-		if val.Type == model.TerminalTypePicReader {
-			continue
-		}
+	//for _, val := range table.TerminalList {
+	//	if val.Type == model.TerminalTypePicReader {
+	//		continue
+	//	}
+	//
+	//	// todo
+	//	//form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusClose}
+	//	//_, err = TerminalService.ChangeStatus(form)
+	//	//if err != nil {
+	//	//	tx.Rollback()
+	//	//	return
+	//	//}
+	//}
 
-		// todo
-		//form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusClose}
-		//_, err = TerminalService.ChangeStatus(form)
-		//if err != nil {
-		//	tx.Rollback()
-		//	return
-		//}
-	}
-
+	// 修改球桌状态为关闭
 	table.ActivatedAt = model.Time{}
 	table.Status = model.TableStatusClose
 	if err = tx.Save(table).Error; err != nil {

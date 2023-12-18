@@ -72,19 +72,22 @@ func (p *paymentService) refund(amount int32, orderList *[]model.PaymentOrder) {
 // 如果需要用微信支付，则生成微信预支付参数
 func (p *paymentService) createOrder(tx *gorm.DB, userId, orderId, payAmount int32, canUseWallet, isRenewal bool) (
 	resp response.PaymentOrderResp, err error) {
-	// 计算微信支付和余额支付各自的金额
-	var wxPayAmount int32
-	var walletPayAmount int32
+
+	// 1、计算微信支付和余额支付各自的金额
+	var wxPayAmount int32     // 微信支付金额
+	var walletPayAmount int32 // 钱包支付金额
 
 	user, err := UserService.GetByUserId(userId)
 	if err != nil {
 		return response.PaymentOrderResp{}, err
 	}
-
 	if canUseWallet {
+
 		if user.Wallet > payAmount {
+			// 钱包大于支付金额，则全额用钱包支付
 			walletPayAmount = payAmount
 		} else if user.Wallet > 0 && user.Wallet < payAmount {
+			// 否则钱包支付部分，微信支付剩余部分
 			walletPayAmount = user.Wallet
 			wxPayAmount = payAmount - walletPayAmount
 		}
@@ -92,7 +95,7 @@ func (p *paymentService) createOrder(tx *gorm.DB, userId, orderId, payAmount int
 		wxPayAmount = payAmount
 	}
 
-	// 有余额付款则生成余额付款单
+	// 2、有余额付款则生成余额付款单
 	if walletPayAmount > 0 {
 		resp.WalletPaymentOrder, err = p.makePaymentOrder(tx, walletPayAmount, userId, orderId, model.PMOModeWallet)
 		if err != nil {
@@ -100,22 +103,24 @@ func (p *paymentService) createOrder(tx *gorm.DB, userId, orderId, payAmount int
 		}
 	}
 
-	// 有微信支付则生成微信付款单
+	// 3、有微信支付则生成微信付款单
 	if wxPayAmount > 0 {
 		resp.WxPaymentOrder, err = p.makePaymentOrder(tx, wxPayAmount, userId, orderId, model.PMOModeWechat)
 		if err != nil {
 			return response.PaymentOrderResp{}, err
 		}
 
+		// 微信支付附加信息（支付成功之后会原样回调给回调接口，用于处理回调部分的逻辑）
 		attach := &wechat.Attach{OrderId: orderId, IsRenewal: isRenewal}
 		// 生成微信支付的参数
-		resp.WxPayResp, err = wechat.NewPayment().GetPrepayBill(user.OpenID, "description", resp.WxPaymentOrder.PaymentOrderNo, wxPayAmount, attach)
+		resp.WxPayResp, err = wechat.NewPayment().GetPrepayBill(
+			user.OpenID, "description", resp.WxPaymentOrder.PaymentOrderNo, wxPayAmount, attach)
 		if err != nil {
 			return response.PaymentOrderResp{}, err
 		}
 	}
 
-	// 没有微信支付的话，那就直接把订单改成已支付
+	// 4、没有微信支付的话，那就直接把订单改成已支付
 	if wxPayAmount == 0 && walletPayAmount >= 0 {
 		if isRenewal {
 			err = p.doOrderSuccess(tx, &resp.WalletPaymentOrder)
@@ -230,6 +235,7 @@ func (p *paymentService) RefundOrder(order model.TableOrder, amount int32) {
 	return
 }
 
+// 付款单支付成功逻辑
 func (p *paymentService) doOrderSuccess(db *gorm.DB, paymentOrder *model.PaymentOrder) (err error) {
 	// 更新付款单状态
 	paymentOrder.Status = model.PMOStatusSuccess
@@ -310,7 +316,8 @@ func (p *paymentService) WechatPayNotify(c *gin.Context) (err error) {
 }
 
 // 创建优惠券订单
-func (p *paymentService) MakeCouponOrder(db *gorm.DB, amount int32, orderType int, orderId, userId int32, description string) (
+func (p *paymentService) MakeCouponOrder(db *gorm.DB, amount int32, orderType int,
+	orderId, userId int32, description string) (
 	payment *jsapi.PrepayWithRequestPaymentResponse, err error) {
 
 	//user, _ := UserService.GetByUserId(userId)

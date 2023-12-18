@@ -50,7 +50,7 @@ func (o *orderService) Renewal(orderId, userId int32) (resp response.OrderResp, 
 	tx := o.db.Begin()
 	defer tx.Rollback()
 
-	// 获取订单信息
+	// 1、获取订单信息
 	order, _ := o.GetOrderInfo(tx, orderId)
 	if order.UserID != userId {
 		err = errors.New("订单不存在")
@@ -59,21 +59,22 @@ func (o *orderService) Renewal(orderId, userId int32) (resp response.OrderResp, 
 
 	resp.Order = order.Order
 
-	// 获取需要支付的金额
+	// 2、获取需要支付的金额
 	payAmount, err := TableOrderService.GetRenewalAmount(order.TableOrder)
 	if err != nil {
 		return
 	}
 
-	// 生成支付参数
-	paymentResp, err := PaymentService.createOrder(tx, userId, order.OrderID, payAmount, true, true)
+	// 3、生成支付参数
+	paymentResp, err := PaymentService.createOrder(
+		tx, userId, order.OrderID, payAmount, true, true)
 	if err != nil {
 		return response.OrderResp{}, err
 	}
 
 	resp.WxPayResp = paymentResp.WxPayResp
 
-	// 标记是否需要微信支付
+	// 4、标记是否需要微信支付
 	if paymentResp.WxPaymentOrder.OrderID > 0 {
 		resp.NeedWxPay = true
 	}
@@ -120,21 +121,22 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 		return
 	}
 
+	// 主订单实际产生的费用金额（它是各个业务订单的实际金额相加）
 	var orderAmount int32 = 0
+	// 优惠券金额
 	var couponAmount int32 = 0
-	var tableOrderAmount int32 = 0
 
 	// 2、计算没个类型的订单现在应该付多少钱
-	// 计算开台订单的退款金额
+	// 2.1、计算开台订单的退款金额
 	if order.TableOrder.OrderID > 0 {
-		tableOrderAmount, err = TableOrderService.settlement(&order.TableOrder)
+		_, err = TableOrderService.settlement(&order.TableOrder)
 		if err != nil {
 			return
 		}
-		orderAmount = orderAmount + tableOrderAmount
+		orderAmount = orderAmount + order.TableOrder.Amount
 	}
 
-	// 结算优惠券金额，如果优惠券未使用，则退掉优惠券
+	// 2.2、结算优惠券金额，如果优惠券未使用，则退掉优惠券
 	if order.CouponOrder.OrderID > 0 {
 		couponAmount, err = CouponOrderService.settlement(&order.CouponOrder)
 		if err != nil {
@@ -144,10 +146,12 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 	}
 
 	// 3、终止各个业务订单
+	// 3.1、终止开台订单
 	if err = TableOrderService.terminate(tx, &order.TableOrder); err != nil {
 		return
 	}
 
+	// 3.2、终止优惠券订单
 	if couponAmount > 0 {
 		if err = CouponOrderService.terminate(tx, &order.CouponOrder); err != nil {
 			return
@@ -164,7 +168,14 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 	tx.Commit()
 
 	// 5、计算退款金额，如果金额大于0则操作退款
-	refundAmount := order.TableOrder.PayAmount + order.CouponOrder.PayAmount - orderAmount
+	// 5.1 计算总支付金额
+	var paidAmount int32 = 0
+	for _, v := range order.PaymentOrderList {
+		paidAmount = paidAmount + v.Amount
+	}
+	// 5.2 计算总退款金额
+	// 退款金额 = 总支付金额 - 各业务订单实际产生的金额
+	refundAmount := paidAmount - orderAmount
 	if refundAmount > 0 {
 		PaymentService.refund(refundAmount, &order.PaymentOrderList)
 	}
@@ -207,7 +218,8 @@ func (o *orderService) Create(userId int32, param request.OrderCreate) (resp res
 	// 2、创建子订单
 	//  创建球桌订单
 	if param.TableID > 0 {
-		tableOrder, err := TableOrderService.create(tx, param.TableID, userId, resp.Order.OrderID, param.CouponID, param.UserCouponID)
+		tableOrder, err := TableOrderService.create(
+			tx, param.TableID, userId, resp.Order.OrderID, param.CouponID, param.UserCouponID)
 		if err != nil {
 			return response.OrderResp{}, err
 		}
@@ -236,7 +248,8 @@ func (o *orderService) Create(userId int32, param request.OrderCreate) (resp res
 	}
 
 	// 3、计算订单金额，生成支付参数
-	paymentResp, err := PaymentService.createOrder(tx, userId, resp.Order.OrderID, totalPayAmount, !param.IsRecharge, false)
+	paymentResp, err := PaymentService.createOrder(
+		tx, userId, resp.Order.OrderID, totalPayAmount, !param.IsRecharge, false)
 	if err != nil {
 		return response.OrderResp{}, err
 	}
@@ -302,6 +315,7 @@ func (o *orderService) PaySuccess(db *gorm.DB, orderId int32) (err error) {
 	return
 }
 
+// 获取订单信息
 func (o *orderService) GetOrderInfo(db *gorm.DB, orderId int32) (order OrderInfo, err error) {
 	if err = db.Where("order_id = ?", orderId).First(&order.Order).Error; err != nil {
 		err = errors.New("订单不存在")
@@ -309,9 +323,19 @@ func (o *orderService) GetOrderInfo(db *gorm.DB, orderId int32) (order OrderInfo
 	}
 
 	db.Where("order_id = ?", orderId).First(&order.RechargeOrder)
-	db.Where("order_id = ?", orderId).Preload("Coupon").First(&order.CouponOrder)
-	db.Where("order_id = ?", orderId).Preload("Table").Preload("Table.Shop").First(&order.TableOrder)
-	db.Where("order_id = ?", orderId).Preload("RefundOrderList").Find(&order.PaymentOrderList)
+
+	db.Where("order_id = ?", orderId).
+		Preload("Coupon").
+		First(&order.CouponOrder)
+
+	db.Where("order_id = ?", orderId).
+		Preload("Table").
+		Preload("Table.Shop").
+		First(&order.TableOrder)
+
+	db.Where("order_id = ?", orderId).
+		Preload("RefundOrderList").
+		Find(&order.PaymentOrderList)
 
 	return
 }

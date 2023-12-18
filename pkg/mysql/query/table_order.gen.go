@@ -60,7 +60,7 @@ type tableOrder struct {
 	TableID      field.Int32
 	CouponID     field.Int32 // 优惠券ID
 	UserCouponID field.Int32 // 用户优惠券ID
-	Amount       field.Int32 // 订单推过押金之后的金额，在结束订单的时候回写
+	Amount       field.Int32 // 订单退过押金之后的金额，在结束订单的时候回写（这里表示的是这个订单实际应该支付的金额，是去除掉优惠券优惠时间的金额）
 	PayAmount    field.Int32 // 订单支付金额
 	CreatedAt    field.Field // 创建时间
 	UpdatedAt    field.Field // 更新时间

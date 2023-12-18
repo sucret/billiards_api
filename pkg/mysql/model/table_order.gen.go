@@ -16,7 +16,7 @@ type TableOrder struct {
 	TableID      int32 `gorm:"column:table_id;type:int(11);not null" json:"table_id"`
 	CouponID     int32 `gorm:"column:coupon_id;type:int(11);not null" json:"coupon_id"`                              // 优惠券ID
 	UserCouponID int32 `gorm:"column:user_coupon_id;type:int(11);not null" json:"user_coupon_id"`                    // 用户优惠券ID
-	Amount       int32 `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 订单推过押金之后的金额，在结束订单的时候回写
+	Amount       int32 `gorm:"column:amount;type:int(11);not null" json:"amount"`                                    // 订单退过押金之后的金额，在结束订单的时候回写（这里表示的是这个订单实际应该支付的金额，是去除掉优惠券优惠时间的金额）
 	PayAmount    int32 `gorm:"column:pay_amount;type:int(11);not null" json:"pay_amount"`                            // 订单支付金额
 	CreatedAt    Time  `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"` // 创建时间
 	UpdatedAt    Time  `gorm:"column:updated_at;type:datetime" json:"updated_at"`                                    // 更新时间

@@ -11,6 +11,7 @@ type Order struct {
 	OrderID          int32          `gorm:"column:order_id;type:int(11);primaryKey;autoIncrement:true" json:"order_id"`
 	UserID           int32          `gorm:"column:user_id;type:int(11)" json:"user_id"`
 	Status           int            `gorm:"column:status;type:tinyint(4);not null;default:1" json:"status"` // 订单状态，1｜待支付，2｜支付成功
+	Amount           int32          `gorm:"column:amount;type:int(11);not null" json:"amount"`              // 订单最终的金额（订单结算之后回写）
 	CreatedAt        Time           `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt        Time           `gorm:"column:updated_at;type:datetime" json:"updated_at"`
 	TableOrder       TableOrder     `gorm:"hasone:table_order;foreignKey:OrderID;joinForeignKey:OrderID;joinReferences:OrderID" json:"table_order"`
