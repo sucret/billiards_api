@@ -248,7 +248,7 @@ func (o *tableOrderService) formatClientOrder(order *response.OrderDetail) {
 	//tool.Dump(order)
 }
 
-func (o *tableOrderService) List(userId int, orderType int) (list []model.TableOrder, err error) {
+func (o *tableOrderService) List(userId int, orderType int) (list []*response.TableOrderDetail, err error) {
 	query := o.db.Preload("Table").Preload("Table.Shop")
 
 	if orderType == 0 {
@@ -257,8 +257,16 @@ func (o *tableOrderService) List(userId int, orderType int) (list []model.TableO
 	} else {
 		query.Where("status = ? AND user_id = ?", orderType, userId)
 	}
-	if err := query.Order("order_id desc").
+	if err = query.Order("order_id desc").
 		Find(&list).Error; err != nil {
+	}
+
+	for _, v := range list {
+		if time.Time(v.TerminatedAt).IsZero() {
+			v.Duration = int32(time.Now().Sub(time.Time(v.StartedAt)).Minutes())
+		} else {
+			v.Duration = int32(time.Time(v.TerminatedAt).Sub(time.Time(v.StartedAt)).Minutes())
+		}
 	}
 
 	return

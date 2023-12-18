@@ -48,3 +48,8 @@ type OrderListResp struct {
 	List  []model.Order `json:"list"`
 	Total int64         `json:"total"`
 }
+
+type TableOrderDetail struct {
+	model.TableOrder
+	Duration int32 `json:"duration"`
+}
