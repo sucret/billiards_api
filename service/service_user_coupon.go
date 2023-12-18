@@ -3,9 +3,7 @@ package service
 import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
-	"billiards/response"
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -55,25 +53,6 @@ func (u *userCouponService) Use(db *gorm.DB, userCouponId, userId int32) (userCo
 	}
 
 	return
-}
-
-func (u *userCouponService) Buy(userId, couponId int32) (resp *response.CouponOrderPrePayParam, err error) {
-	coupon, err := CouponService.GetById(couponId)
-	if err != nil {
-		return
-	}
-
-	// 根据价格生成付款单
-	order, err := PaymentService.MakeCouponOrder(u.db, coupon.Price, model.POTypeCoupon, 1, userId, coupon.Name)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(order)
-	return
-}
-
-func (u *userCouponService) PaySuccess() {
-
 }
 
 // 优惠券列表

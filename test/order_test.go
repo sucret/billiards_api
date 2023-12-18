@@ -50,3 +50,10 @@ func TestOrderSuccess(t *testing.T) {
 		return
 	}
 }
+
+func TestOrderTerminate(t *testing.T) {
+	err := service.OrderService.Terminate(124, 3)
+	if err != nil {
+		return
+	}
+}

@@ -29,10 +29,10 @@ func (*couponOrderService) settlement(couponOrder *model.CouponOrder) (amount in
 		return
 	}
 
-	amount = 0
+	amount = couponOrder.PayAmount
 	// 如果未使用，则直接退款
 	if userCoupon.Status == model.UserCouponStatusNormal {
-		amount = couponOrder.PayAmount
+		amount = 0
 	}
 
 	return

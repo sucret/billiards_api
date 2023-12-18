@@ -123,7 +123,7 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 
 	// 主订单实际产生的费用金额（它是各个业务订单的实际金额相加）
 	var orderAmount int32 = 0
-	// 优惠券金额
+	// 优惠券使用金额
 	var couponAmount int32 = 0
 
 	// 2、计算没个类型的订单现在应该付多少钱
@@ -151,8 +151,8 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 		return
 	}
 
-	// 3.2、终止优惠券订单
-	if couponAmount > 0 {
+	// 3.2、如果优惠券没有使用，则终止优惠券订单
+	if order.CouponOrder.CouponOrderID > 0 && couponAmount == 0 {
 		if err = CouponOrderService.terminate(tx, &order.CouponOrder); err != nil {
 			return
 		}
@@ -174,7 +174,7 @@ func (o *orderService) Terminate(orderId, userId int32) (err error) {
 		paidAmount = paidAmount + v.Amount
 	}
 	// 5.2 计算总退款金额
-	// 退款金额 = 总支付金额 - 各业务订单实际产生的金额
+	// 退款金额 = 总支付金额 - 各业务订单实际产生的金额 - 优惠券金额
 	refundAmount := paidAmount - orderAmount
 	if refundAmount > 0 {
 		PaymentService.refund(refundAmount, &order.PaymentOrderList)
@@ -268,14 +268,15 @@ func (o *orderService) Create(userId int32, param request.OrderCreate) (resp res
 
 // 支付成功
 func (o *orderService) PaySuccess(db *gorm.DB, orderId int32) (err error) {
+	// 1、获取订单信息
 	order, err := o.GetOrderInfo(db, orderId)
 	if order.OrderID == 0 || order.Status != 1 {
 		err = errors.New("订单信息不存在")
 		return
 	}
 
-	// 子订单支付成功
-	// 充值订单支付成功
+	// 2、子订单支付成功
+	// 2.1 充值订单支付成功
 	if order.RechargeOrder.RechargeOrderID > 0 {
 		err = RechargeOrderService.paySuccess(db, &order.RechargeOrder)
 		if err != nil {
@@ -283,7 +284,7 @@ func (o *orderService) PaySuccess(db *gorm.DB, orderId int32) (err error) {
 		}
 	}
 
-	// 优惠券订单支付成功
+	// 2.2 优惠券订单支付成功
 	if order.CouponOrder.CouponOrderID > 0 {
 		err = CouponOrderService.paySuccess(db, &order.CouponOrder)
 		if err != nil {
@@ -291,7 +292,7 @@ func (o *orderService) PaySuccess(db *gorm.DB, orderId int32) (err error) {
 		}
 	}
 
-	// 球桌/棋牌桌 订单支付成功
+	// 2.3 开台订单支付成功
 	// 需要放在优惠券之后执行，因为这一单使用了组合支付，优惠券支付先成功之后才会用在这一单上边
 	if order.TableOrder.TableOrderID > 0 {
 		err = TableOrderService.paySuccess(db, &order.TableOrder)
@@ -300,11 +301,11 @@ func (o *orderService) PaySuccess(db *gorm.DB, orderId int32) (err error) {
 		}
 	}
 
-	// 主订单支付成功
+	// 3、主订单支付成功
 	order.Status = 2
 	err = db.Save(&order.Order).Error
 
-	// 付款单支付成功
+	// 4、付款单支付成功
 	for _, v := range order.PaymentOrderList {
 		err = PaymentService.doOrderSuccess(db, &v)
 		if err != nil {
