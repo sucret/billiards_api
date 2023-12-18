@@ -7,9 +7,10 @@ import (
 
 type OrderDetail struct {
 	model.TableOrder
-	UsedMinutes   int32 `json:"used_minutes"`
-	RemainMinutes int32 `json:"remain_minutes"`
-	TotalMinutes  int32 `json:"total_minutes"`
+	UsedMinutes          int32 `json:"used_minutes"`           // 使用时长
+	RemainMinutes        int32 `json:"remain_minutes"`         // 剩余时长
+	TotalMinutes         int32 `json:"total_minutes"`          // 总时长
+	WaitSettlementAmount int32 `json:"wait_settlement_amount"` // 待结算金额
 }
 
 type RechargeResult struct {

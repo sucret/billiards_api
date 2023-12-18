@@ -3,7 +3,6 @@ package service
 import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
-	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
 	"errors"
@@ -92,11 +91,11 @@ func (o *orderService) Detail(orderId, userId int32) (detail response.OrderDetai
 		return
 	}
 
-	tool.Dump(order)
 	detail.Order = order.Order
 	detail.TableOrder.TableOrder = order.TableOrder
 	detail.PaymentOrderList = order.PaymentOrderList
 	detail.CouponOrder = order.CouponOrder
+	detail.Coupon = order.CouponOrder.Coupon
 
 	TableOrderService.formatTableOrder(&detail)
 

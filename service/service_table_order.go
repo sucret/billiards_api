@@ -5,8 +5,10 @@ import (
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
+	"billiards/pkg/tool"
 	"billiards/response"
 	"errors"
+	"fmt"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -47,38 +49,52 @@ func (o *tableOrderService) GetByTable(tableId, userId int) (order model.TableOr
 }
 
 func (o *tableOrderService) formatTableOrder(detail *response.OrderDetailResp) {
-	var totalAmount int32
+	var totalAmount, orderAmount int32
 	for _, v := range detail.PaymentOrderList {
 		totalAmount = totalAmount + v.Amount
 	}
+	orderAmount = totalAmount
 
-	// 总时长 （当前支付的金额 / 单价 * 60）
-	tMinutes := float64(totalAmount) / float64(detail.TableOrder.Table.Price) * 60
+	tool.Dump(detail.PaymentOrderList)
+	fmt.Println(totalAmount)
 
 	// 如果有优惠券，则需要加上优惠券的时长
+	var couponDuration int32 = 0
+
 	if detail.CouponOrder.CouponOrderID > 0 {
 		coupon, err := CouponService.GetById(detail.CouponOrder.CouponID)
+		tool.Dump(coupon)
 		if err != nil {
 			return
 		}
-		tMinutes = tMinutes + float64(coupon.Duration)
+
+		orderAmount = orderAmount - coupon.Price
+		couponDuration = coupon.Duration
 	}
 
-	detail.TableOrder.TotalMinutes = int32(math.Ceil(tMinutes))
-
+	// 使用时长
 	if detail.TableOrder.Status == model.OrderStatusPaySuccess {
-		// 使用时长
 		detail.TableOrder.UsedMinutes = int32(time.Now().Sub(time.Time(detail.TableOrder.StartedAt)).Minutes())
 	} else if detail.TableOrder.Status == model.OrderStatusFinised {
-		detail.TableOrder.UsedMinutes = int32(time.Time(detail.TableOrder.TerminatedAt).
-			Sub(time.Time(detail.TableOrder.StartedAt)).Minutes())
+		detail.TableOrder.UsedMinutes =
+			int32(time.Time(detail.TableOrder.TerminatedAt).Sub(time.Time(detail.TableOrder.StartedAt)).Minutes())
 	}
+
+	// 总时长 = 优惠券时长 + 订单时长
+	// 订单时长 = 订单金额 / 单价 * 60
+	// 订单金额 = 总金额 - 优惠券金额
+	detail.TableOrder.TotalMinutes = int32(math.Ceil(float64(orderAmount)/float64(detail.TableOrder.Table.Price)*60)) + couponDuration
 
 	// 剩余时长
 	detail.TableOrder.RemainMinutes = detail.TableOrder.TotalMinutes - detail.TableOrder.UsedMinutes
 	if detail.TableOrder.RemainMinutes < 0 {
 		detail.TableOrder.RemainMinutes = 0
 	}
+
+	// 待结算金额
+	// 使用时长 - 优惠券时长
+	waitSettlementMinutes := math.Max(float64(detail.TableOrder.UsedMinutes-couponDuration), 0)
+	detail.TableOrder.WaitSettlementAmount = int32(float64(detail.TableOrder.Table.Price) / 60 * waitSettlementMinutes)
 }
 
 // 终止开台订单
@@ -144,7 +160,8 @@ func (o *tableOrderService) Terminate(userId, tableOrderId int) (order *response
 	// 获取订单信息
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
 		Preload("Table").
-		Where("user_id = ? AND table_order_id = ? AND status = ?", userId, tableOrderId, model.OrderStatusPaySuccess).
+		Where("user_id = ? AND table_order_id = ? AND status = ?",
+			userId, tableOrderId, model.OrderStatusPaySuccess).
 		First(&order).Error; err != nil {
 		err = errors.New("未查询到订单信息")
 		tx.Rollback()
