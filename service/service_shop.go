@@ -8,7 +8,6 @@ import (
 	"billiards/request"
 	"billiards/response"
 	"errors"
-	"fmt"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 	"math"
@@ -22,6 +21,19 @@ type shopService struct {
 var ShopService = &shopService{
 	db:    mysql.GetDB(),
 	redis: redis_.GetRedis(),
+}
+
+func (s *shopService) Status(shopId int) (resp response.ShopStatusResp, err error) {
+	shop := model.Shop{}
+	err = s.db.Preload("TableList").
+		Where("shop_id = ?", shopId).
+		First(&shop).Error
+
+	for _, v := range shop.TableList {
+		resp.TableStatusList = append(resp.TableStatusList, response.TableStatus{TableID: v.TableID, Status: v.Status})
+	}
+
+	return
 }
 
 func (s *shopService) Detail(shopId int) (shop model.Shop, err error) {
@@ -61,11 +73,8 @@ func (s *shopService) List() (list []*response.Shop) {
 func (s *shopService) ListWithDistance(lat, lng float64) (shopList []*response.Shop) {
 	shopList = s.List()
 
-	fmt.Println(lat, lng)
-
 	if lat > 0 && lng > 0 {
 		for _, v := range shopList {
-			fmt.Println(v.Latitude, v.Longitude, lat, lng)
 			if v.Latitude > 0 && v.Longitude > 0 {
 				v.Distance = math.Round(tool.Distance(lat, lng, v.Latitude, v.Longitude)/100) / 10
 			}
@@ -83,7 +92,6 @@ func (s *shopService) Save(form request.SaveShop) (shop model.Shop, err error) {
 			return
 		}
 
-		fmt.Println(form)
 		shop.Name = form.Name
 		shop.Status = form.Status
 		shop.Address = form.Address

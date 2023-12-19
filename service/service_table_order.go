@@ -8,7 +8,6 @@ import (
 	"billiards/pkg/tool"
 	"billiards/response"
 	"errors"
-	"fmt"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -54,9 +53,6 @@ func (o *tableOrderService) formatTableOrder(detail *response.OrderDetailResp) {
 		totalAmount = totalAmount + v.Amount
 	}
 	orderAmount = totalAmount
-
-	tool.Dump(detail.PaymentOrderList)
-	fmt.Println(totalAmount)
 
 	// 如果有优惠券，则需要加上优惠券的时长
 	var couponDuration int32 = 0
