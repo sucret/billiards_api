@@ -94,7 +94,7 @@ func (t *tableService) Disable(tx *gorm.DB, tableId int32) (table model.Table, e
 	// 修改球桌状态为关闭
 	table.ActivatedAt = model.Time{}
 	table.Status = model.TableStatusClose
-	if err = tx.Save(table).Error; err != nil {
+	if err = tx.Save(&table).Error; err != nil {
 		err = errors.New("关闭球桌失败")
 		return
 	}
@@ -110,8 +110,7 @@ func (t *tableService) Enable(db *gorm.DB, tableId int32) (table model.Table, er
 
 	//tx := t.db.Begin()
 
-	if err = db.Preload("TerminalList").
-		Where("table_id = ?", tableId).
+	if err = db.Where("table_id = ?", tableId).
 		First(&table).Error; err != nil {
 
 		err = errors.New("球桌不存在")
@@ -138,7 +137,7 @@ func (t *tableService) Enable(db *gorm.DB, tableId int32) (table model.Table, er
 
 	table.ActivatedAt = model.Time(time.Now())
 	table.Status = model.TableStatusOpen
-	if err = db.Save(table).Error; err != nil {
+	if err = db.Save(&table).Error; err != nil {
 		err = errors.New("开启失败")
 		return
 	}

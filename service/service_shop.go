@@ -5,6 +5,7 @@ import (
 	"billiards/pkg/mysql/model"
 	redis_ "billiards/pkg/redis"
 	"billiards/pkg/tool"
+	"billiards/pkg/ws_entity"
 	"billiards/request"
 	"billiards/response"
 	"encoding/json"
@@ -38,17 +39,13 @@ var socketUpgrader = websocket.Upgrader{
 }
 
 // 店铺状态的通道
-var shopStatusChan = make(map[int32]chan int32)
+//var shopStatusChan = make(map[int32]chan int32)
 
 // 推送店铺变更信号
 // 如果没有shopStatusChan[shopId] 则表示没有连接socket，直接返回
 func (s *shopService) PushShopStatusChan(shopId int32) {
-	_, ok := shopStatusChan[shopId]
-	if !ok {
-		return
-	}
+	ws_entity.PushShopStatusChan(shopId)
 
-	shopStatusChan[shopId] <- shopId
 }
 
 // 店铺状态socket
@@ -56,7 +53,6 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 	sId, err := strconv.Atoi(c.Query("shop_id"))
 	shopId := int32(sId)
 
-	fmt.Println(shopStatusChan)
 	// 将当前http连接升级为websocket连接
 	conn, err := socketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -66,15 +62,12 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 		_ = conn.Close()
 		fmt.Println("socket close")
 		// 释放shop chan
-		delete(shopStatusChan, shopId)
+		//delete(shopStatusChan, shopId)
+		ws_entity.DeleteShopStatusChan(shopId)
 	}(conn)
 
 	// 获取shop chan
-	shopChan, ok := shopStatusChan[shopId]
-	if !ok {
-		shopChan = make(chan int32, 10)
-		shopStatusChan[shopId] = shopChan
-	}
+	ws_entity.InitShopStatusChan(shopId)
 
 	sendStatusMsg := func(shopId int32) {
 		shopInfo, err := s.shopStatus(shopId)
@@ -89,11 +82,14 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 
 	// 异步监听通道消息，有消息就推送店铺状态给客户端
 	go func() {
-		for {
-			shId := <-shopChan
-			fmt.Println("监听到店铺状态变更，推送消息...")
-			sendStatusMsg(shId)
-		}
+		ws_entity.ConsumeShopStatusChan(shopId, func(shopId int32) {
+			sendStatusMsg(shopId)
+		})
+		//for {
+		//	shId := <-shopChan
+		//	fmt.Println("监听到店铺状态变更，推送消息...")
+		//	sendStatusMsg(shId)
+		//}
 	}()
 
 	// 建立一个映射店铺id的chan类型的map
