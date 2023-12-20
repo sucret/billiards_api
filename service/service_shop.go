@@ -7,10 +7,16 @@ import (
 	"billiards/pkg/tool"
 	"billiards/request"
 	"billiards/response"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 	"math"
+	"net/http"
+	"strconv"
 )
 
 type shopService struct {
@@ -23,7 +29,94 @@ var ShopService = &shopService{
 	redis: redis_.GetRedis(),
 }
 
-func (s *shopService) Status(shopId int) (resp response.ShopStatusResp, err error) {
+var socketUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+// 店铺状态的通道
+var shopStatusChan = make(map[int32]chan int32)
+
+// 推送店铺变更信号
+// 如果没有shopStatusChan[shopId] 则表示没有连接socket，直接返回
+func (s *shopService) PushShopStatusChan(shopId int32) {
+	_, ok := shopStatusChan[shopId]
+	if !ok {
+		return
+	}
+
+	shopStatusChan[shopId] <- shopId
+}
+
+// 店铺状态socket
+func (s *shopService) StatusSocket(c *gin.Context) {
+	sId, err := strconv.Atoi(c.Query("shop_id"))
+	shopId := int32(sId)
+
+	fmt.Println(shopStatusChan)
+	// 将当前http连接升级为websocket连接
+	conn, err := socketUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	defer func(conn *websocket.Conn) {
+		_ = conn.Close()
+		fmt.Println("socket close")
+		// 释放shop chan
+		delete(shopStatusChan, shopId)
+	}(conn)
+
+	// 获取shop chan
+	shopChan, ok := shopStatusChan[shopId]
+	if !ok {
+		shopChan = make(chan int32, 10)
+		shopStatusChan[shopId] = shopChan
+	}
+
+	sendStatusMsg := func(shopId int32) {
+		shopInfo, err := s.shopStatus(shopId)
+		resp, _ := json.Marshal(shopInfo)
+		err = conn.WriteMessage(websocket.TextMessage, resp)
+		if err != nil {
+			return
+		}
+	}
+
+	sendStatusMsg(shopId)
+
+	// 异步监听通道消息，有消息就推送店铺状态给客户端
+	go func() {
+		for {
+			shId := <-shopChan
+			fmt.Println("监听到店铺状态变更，推送消息...")
+			sendStatusMsg(shId)
+		}
+	}()
+
+	// 建立一个映射店铺id的chan类型的map
+	// 如果店铺有变动就往chan中推送店铺的信息
+	// 在这里监控chan
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Printf("收到消息:%s \n", msg)
+
+		err = conn.WriteMessage(websocket.TextMessage, []byte("已收到消息"))
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+// 获取店铺状态信息
+func (s *shopService) shopStatus(shopId int32) (resp response.ShopStatusResp, err error) {
 	shop := model.Shop{}
 	err = s.db.Preload("TableList").
 		Where("shop_id = ?", shopId).
