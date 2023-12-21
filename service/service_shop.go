@@ -15,9 +15,11 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type shopService struct {
@@ -91,6 +93,30 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 		//	sendStatusMsg(shId)
 		//}
 	}()
+
+	// 维护心跳
+	go func() {
+		for {
+			err := conn.WriteMessage(websocket.PingMessage, []byte{})
+			if err != nil {
+				log.Println(err)
+				break
+			}
+
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
+	//go func() {
+	//	for {
+	//		if conn == nil || conn.State() != websocket.StateOpen {
+	//			// 连接已关闭，不要进行操作
+	//			return
+	//		}
+	//
+	//		time.Sleep(time.Second * 5)
+	//	}
+	//}()
 
 	// 建立一个映射店铺id的chan类型的map
 	// 如果店铺有变动就往chan中推送店铺的信息
