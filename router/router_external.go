@@ -26,7 +26,7 @@ func setExternalRoute(r *gin.Engine) {
 		// 退款测试
 		//clientRouters.GET("/wechat/refund", api.WechatApi.Refund)
 
-		//clientRouters.GET("/shop/terminal/status", api.ShopApi.TerminalStatus)
+		clientRouters.GET("/shop/terminal/status", api.ShopApi.TerminalStatus)
 
 		// 店铺终端状态socket
 		clientRouters.GET("/shop/terminal-status/socket", api.ShopApi.TerminalStatusSocket)

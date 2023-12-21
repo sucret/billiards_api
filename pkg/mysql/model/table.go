@@ -13,6 +13,7 @@ const (
 )
 
 func (t *Table) AfterUpdate(tx *gorm.DB) (err error) {
+	// 这里需要延迟去推送消息，不然事务没提交消息就被消费掉了
 	go func() {
 		time.Sleep(1 * time.Second)
 		ws_entity.PushShopStatusChan(t.ShopID)

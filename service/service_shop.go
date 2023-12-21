@@ -70,7 +70,7 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 	ws_entity.InitShopStatusChan(shopId)
 
 	sendStatusMsg := func(shopId int32) {
-		shopInfo, err := s.shopStatus(shopId)
+		shopInfo, err := s.ShopStatus(shopId)
 		resp, _ := json.Marshal(shopInfo)
 		err = conn.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {
@@ -112,7 +112,7 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 }
 
 // 获取店铺状态信息
-func (s *shopService) shopStatus(shopId int32) (resp response.ShopStatusResp, err error) {
+func (s *shopService) ShopStatus(shopId int32) (resp response.ShopStatusResp, err error) {
 	shop := model.Shop{}
 	err = s.db.Preload("TableList").
 		Where("shop_id = ?", shopId).
