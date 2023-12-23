@@ -73,7 +73,7 @@ func (s *shopService) StatusSocket(c *gin.Context) {
 		return nil
 	})
 
-	// 获取shop chan
+	// 初始化shop chan
 	ws_entity.InitShopStatusChan(shopId)
 
 	sendStatusMsg := func(shopId int32) {
