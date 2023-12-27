@@ -25,7 +25,7 @@ func (*userApi) Login(c *gin.Context) {
 		return
 	}
 
-	if user, err := service.UserService.Login(code); err != nil {
+	if user, err := service.UserService.Login(code); user.UserID == 0 {
 		response.BusinessFail(c, err.Error())
 	} else {
 		tokenData, _, err := service.JwtService.CreateToken(service.AppClientName, user)

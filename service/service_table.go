@@ -6,7 +6,6 @@ import (
 	redis_ "billiards/pkg/redis"
 	"billiards/request"
 	"errors"
-	"fmt"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 	"sync"
@@ -69,7 +68,7 @@ func (t *tableService) Disable(tx *gorm.DB, tableId int32) (table model.Table, e
 	//tx := t.db.Begin()
 
 	if err = tx.Set("gorm:query_option", "FOR UPDATE").
-		Preload("TerminalList").
+		//Preload("TerminalList").
 		Where("table_id = ?", tableId).
 		First(&table).Error; err != nil {
 
@@ -119,21 +118,21 @@ func (t *tableService) Enable(db *gorm.DB, tableId int32) (table model.Table, er
 
 	// 调用终端服务去开启，成
 	//功之后修改表
-	for _, val := range table.TerminalList {
-		if val.Type == model.TerminalTypePicReader {
-			continue
-		}
-
-		form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusOpen}
-		fmt.Println(form)
-
-		// todo 开台这里先隐藏
-		//_, err = TerminalService.ChangeStatus(form)
-		//if err != nil {
-		//	tx.Rollback()
-		//	return
-		//}
-	}
+	//for _, val := range table.TerminalList {
+	//	if val.Type == model.TerminalTypePicReader {
+	//		continue
+	//	}
+	//
+	//	form := request.ChangeTerminalStatus{TerminalId: val.TerminalID, Status: model.TerminalStatusOpen}
+	//	fmt.Println(form)
+	//
+	//	// todo 开台这里先隐藏
+	//	//_, err = TerminalService.ChangeStatus(form)
+	//	//if err != nil {
+	//	//	tx.Rollback()
+	//	//	return
+	//	//}
+	//}
 
 	table.ActivatedAt = model.Time(time.Now())
 	table.Status = model.TableStatusOpen

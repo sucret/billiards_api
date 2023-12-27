@@ -13,7 +13,7 @@ type CouponOrder struct {
 	CouponID      int32  `gorm:"column:coupon_id;type:int(11);not null" json:"coupon_id"`
 	PayAmount     int32  `gorm:"column:pay_amount;type:int(11)" json:"pay_amount"` // 订单支付金额
 	UserCouponID  int32  `gorm:"column:user_coupon_id;type:int(11);not null" json:"user_coupon_id"`
-	Status        int    `gorm:"column:status;type:tinyint(4);not null" json:"status"`
+	Status        int    `gorm:"column:status;type:tinyint(4);not null" json:"status"` // 状态，1｜待支付，2｜已支付
 	UserID        int32  `gorm:"column:user_id;type:int(11);not null" json:"user_id"`
 	CreatedAt     Time   `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt     Time   `gorm:"column:updated_at;type:datetime" json:"updated_at"`

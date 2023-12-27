@@ -14,3 +14,8 @@ type UserLogin struct {
 	User      model.User  `json:"user"`
 	TokenData TokenOutPut `json:"token_data"`
 }
+
+type UserListResp struct {
+	List []model.User `json:"list"`
+	Pagination
+}

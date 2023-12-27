@@ -4,8 +4,8 @@ import (
 	"billiards/pkg/log"
 	"billiards/pkg/mysql"
 	"billiards/pkg/mysql/model"
-	"billiards/pkg/tool"
 	"billiards/request"
+	"billiards/response"
 	"errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -17,6 +17,12 @@ type userService struct {
 
 var UserService = &userService{
 	db: mysql.GetDB(),
+}
+
+func (u *userService) List(form request.UserListReq) (resp response.UserListResp, err error) {
+	err = u.db.Offset((form.Page - 1) * form.PageSize).Limit(form.PageSize).Find(&resp.List).Error
+	u.db.Model(&resp.List).Count(&resp.Total)
+	return
 }
 
 // 更新用户信息
@@ -39,9 +45,9 @@ func (u *userService) Save(userId int32, form request.SaveUser) (user model.User
 	return
 }
 
+// 用户登陆，如果没有用户信息则创建用户
 func (u *userService) Login(code string) (user *model.User, err error) {
 	resp, err := WeApp.Login(code)
-	tool.Dump(resp)
 	if err != nil {
 		return
 	}

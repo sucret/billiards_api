@@ -27,12 +27,21 @@ type OrderInfo struct {
 }
 
 func (o *orderService) List(form request.OrderList) (resp response.OrderListResp, err error) {
-	query := o.db.Preload("TableOrder").
+	query := o.db.Preload("TableOrder", "shop_id = ?", form.ShopId).
 		Preload("TableOrder.Table").
 		Preload("TableOrder.Table.Shop").
 		Preload("PaymentOrderList").
 		Preload("CouponOrder").
 		Preload("CouponOrder.Coupon")
+
+	// 主订单表没有店铺id，这里需要用子查询
+	if form.ShopId > 0 {
+		query = query.Where("order_id IN (SELECT order_id FROM table_order WHERE shop_id = ?)", form.ShopId)
+	}
+
+	if form.UserId > 0 {
+		query = query.Where("user_id = ?", form.UserId)
+	}
 
 	query.Model(&[]model.Order{}).Count(&resp.Total)
 

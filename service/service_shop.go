@@ -134,7 +134,7 @@ func (s *shopService) ShopStatus(shopId int32) (resp response.ShopStatusResp, er
 
 func (s *shopService) Detail(shopId int) (shop model.Shop, err error) {
 	err = s.db.Preload("TableList").
-		Preload("TableList.TerminalList").
+		//Preload("TableList.TerminalList").
 		Where("shop_id = ?", shopId).
 		First(&shop).Error
 

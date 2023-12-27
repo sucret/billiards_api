@@ -78,5 +78,8 @@ func setAdminRouter(r *gin.Engine) {
 		// 订单
 		adminRouter.POST("/order/list", api.OrderApi.List)
 		adminRouter.GET("/order/detail", api.OrderApi.Detail)
+
+		// 用户
+		adminRouter.POST("/user/list", api.UserApi.List)
 	}
 }

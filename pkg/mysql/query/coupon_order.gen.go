@@ -51,7 +51,7 @@ type couponOrder struct {
 	CouponID      field.Int32
 	PayAmount     field.Int32 // 订单支付金额
 	UserCouponID  field.Int32
-	Status        field.Int
+	Status        field.Int // 状态，1｜待支付，2｜已支付
 	UserID        field.Int32
 	CreatedAt     field.Field
 	UpdatedAt     field.Field

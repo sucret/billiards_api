@@ -81,8 +81,7 @@ func (p *paymentService) createOrder(tx *gorm.DB, userId, orderId, payAmount int
 	if err != nil {
 		return response.PaymentOrderResp{}, err
 	}
-	if canUseWallet {
-
+	if canUseWallet && user.Wallet > 0 {
 		if user.Wallet > payAmount {
 			// 钱包大于支付金额，则全额用钱包支付
 			walletPayAmount = payAmount
