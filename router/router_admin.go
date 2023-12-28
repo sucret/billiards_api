@@ -11,17 +11,17 @@ import (
 func setAdminRouter(r *gin.Engine) {
 
 	// 登陆接口不需要走jwt验证
-	r.POST("/admin/login", api.AdminApi.Login)
-	r.POST("/admin/get-login-sms", api.AdminApi.AdminSendLoginSms)
+	r.POST("/a/login", api.AdminApi.Login)
+	r.POST("/a/get-login-sms", api.AdminApi.AdminSendLoginSms)
 
 	// 菜单接口不走权限验证
-	r.GET("/admin/admin/menu",
+	r.GET("/a/admin/menu",
 		middleware.JWTAuth(service.AppGuardName),
 		gin.Logger(),
 		middleware.CustomRecovery(),
 		api.AdminApi.MenuList)
 
-	adminRouter := r.Group("/admin").Use(
+	adminRouter := r.Group("/a").Use(
 		middleware.JWTAuth(service.AppGuardName),
 		middleware.CheckAdminPermission(),
 		gin.Logger(),
